@@ -1,0 +1,55 @@
+.management-container {
+  padding: 20px;
+}
+
+.management-container h1 {
+  margin-bottom: 20px;
+  color: #333;
+}
+
+.management-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+}
+
+.management-table th,
+.management-table td {
+  border: 1px solid #ddd;
+  padding: 12px;
+  text-align: left;
+}
+
+.management-table th {
+  background-color: #f2f2f2;
+  font-weight: bold;
+}
+
+.management-table tr:nth-child(even) {
+  background-color: #f9f9f9;
+}
+
+.management-table tr:hover {
+  background-color: #f5f5f5;
+}
+
+.management-table button {
+  margin: 0 5px;
+  padding: 5px 10px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+.management-table button:hover {
+  background-color: #0056b3;
+}
+
+.loading {
+  text-align: center;
+  padding: 20px;
+  font-size: 18px;
+  color: #666;
+}
