@@ -1,0 +1,374 @@
+/* Tab页签样式 */
+.tab-bar {
+  background: white;
+  border-bottom: 1px solid #e8e8e8;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  height: 40px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+  position: relative;
+  z-index: 100;
+}
+
+.tab-container {
+  display: flex;
+  flex: 1;
+  overflow-x: auto;
+  overflow-y: hidden;
+  height: 100%;
+  align-items: stretch;
+}
+
+.tab-container::-webkit-scrollbar {
+  height: 2px;
+}
+
+.tab-container::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.tab-container::-webkit-scrollbar-thumb {
+  background: #d9d9d9;
+  border-radius: 1px;
+}
+
+.tab-container::-webkit-scrollbar-thumb:hover {
+  background: #bfbfbf;
+}
+
+/* Tab项 */
+.tab-item {
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  background: #f5f5f5;
+  border-right: 1px solid #e8e8e8;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+  min-width: 120px;
+  max-width: 200px;
+  height: 100%;
+  position: relative;
+  user-select: none;
+}
+
+.tab-item:hover {
+  background: #e6f7ff;
+}
+
+.tab-item.active {
+  background: white;
+  border-bottom: 2px solid #1890ff;
+  color: #1890ff;
+}
+
+.tab-item.dragging {
+  opacity: 0.5;
+  transform: scale(0.95);
+}
+
+.tab-item.drag-over {
+  border-left: 2px solid #1890ff;
+}
+
+/* Tab图标 */
+.tab-icon {
+  margin-right: 6px;
+  font-size: 12px;
+  flex-shrink: 0;
+}
+
+/* Tab标题 */
+.tab-title {
+  flex: 1;
+  font-size: 13px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Tab关闭按钮 */
+.tab-close {
+  margin-left: 6px;
+  padding: 2px;
+  border-radius: 2px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #999;
+  font-size: 10px;
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.tab-close:hover {
+  background: #ff4d4f;
+  color: white;
+  border-radius: 50%;
+}
+
+.tab-item.active .tab-close {
+  color: #666;
+}
+
+/* Tab操作按钮区域 */
+.tab-actions {
+  display: flex;
+  align-items: center;
+  padding: 0 8px;
+  border-left: 1px solid #e8e8e8;
+  background: #fafafa;
+  height: 100%;
+}
+
+.tab-action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #666;
+  border-radius: 2px;
+  transition: all 0.2s;
+  margin: 0 2px;
+}
+
+.tab-action-btn:hover {
+  background: #e6f7ff;
+  color: #1890ff;
+}
+
+.tab-action-btn:disabled {
+  color: #d9d9d9;
+  cursor: not-allowed;
+}
+
+.tab-action-btn:disabled:hover {
+  background: none;
+  color: #d9d9d9;
+}
+
+/* 右键菜单 */
+.tab-context-menu {
+  position: fixed;
+  background: white;
+  border: 1px solid #d9d9d9;
+  border-radius: 4px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  padding: 4px 0;
+  min-width: 120px;
+  z-index: 1000;
+}
+
+.context-menu-item {
+  display: flex;
+  align-items: center;
+  padding: 8px 16px;
+  cursor: pointer;
+  font-size: 13px;
+  color: #333;
+  transition: background-color 0.2s;
+}
+
+.context-menu-item:hover {
+  background: #f5f5f5;
+}
+
+.context-menu-item:disabled,
+.context-menu-item.disabled {
+  color: #d9d9d9;
+  cursor: not-allowed;
+}
+
+.context-menu-item:disabled:hover,
+.context-menu-item.disabled:hover {
+  background: none;
+}
+
+.context-menu-item i {
+  margin-right: 8px;
+  width: 14px;
+  text-align: center;
+  font-size: 12px;
+}
+
+.context-menu-divider {
+  height: 1px;
+  background: #e8e8e8;
+  margin: 4px 0;
+}
+
+/* Tab拖拽指示器 */
+.tab-drop-indicator {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: #1890ff;
+  z-index: 10;
+  transition: left 0.1s;
+}
+
+/* 新Tab按钮 */
+.new-tab-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: none;
+  border: 1px dashed #d9d9d9;
+  cursor: pointer;
+  color: #666;
+  border-radius: 4px;
+  transition: all 0.2s;
+  margin: 0 8px;
+}
+
+.new-tab-btn:hover {
+  border-color: #1890ff;
+  color: #1890ff;
+  background: #f6ffed;
+}
+
+/* Tab滚动按钮 */
+.tab-scroll-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 100%;
+  background: #fafafa;
+  border: none;
+  cursor: pointer;
+  color: #666;
+  transition: all 0.2s;
+  border-left: 1px solid #e8e8e8;
+}
+
+.tab-scroll-btn:hover {
+  background: #e6f7ff;
+  color: #1890ff;
+}
+
+.tab-scroll-btn:disabled {
+  color: #d9d9d9;
+  cursor: not-allowed;
+}
+
+.tab-scroll-btn:disabled:hover {
+  background: #fafafa;
+  color: #d9d9d9;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .tab-bar {
+    height: 36px;
+  }
+  
+  .tab-item {
+    min-width: 100px;
+    max-width: 150px;
+    padding: 0 12px;
+  }
+  
+  .tab-title {
+    font-size: 12px;
+  }
+  
+  .tab-actions {
+    padding: 0 4px;
+  }
+  
+  .tab-action-btn {
+    width: 20px;
+    height: 20px;
+    margin: 0 1px;
+  }
+}
+
+/* 动画效果 */
+@keyframes tabSlideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes tabSlideOut {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+}
+
+.tab-item.entering {
+  animation: tabSlideIn 0.2s ease-out;
+}
+
+.tab-item.exiting {
+  animation: tabSlideOut 0.2s ease-out;
+}
+
+/* 加载状态 */
+.tab-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: #999;
+}
+
+.tab-loading i {
+  margin-right: 6px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* 错误状态 */
+.tab-error {
+  color: #ff4d4f;
+}
+
+.tab-error .tab-icon {
+  color: #ff4d4f;
+}
+
+/* 修改状态指示 */
+.tab-modified::after {
+  content: '';
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 6px;
+  height: 6px;
+  background: #ff4d4f;
+  border-radius: 50%;
+}
+
+.tab-modified.active::after {
+  background: #1890ff;
+}

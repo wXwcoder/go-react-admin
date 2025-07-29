@@ -1,6 +1,7 @@
 package global
 
 import (
+	"github.com/casbin/casbin/v2"
 	"github.com/go-redis/redis/v8"
 	"gorm.io/gorm"
 )
@@ -11,6 +12,9 @@ var (
 
 	// Redis客户端
 	RedisClient *redis.Client
+
+	// Casbin权限管理器
+	Enforcer *casbin.Enforcer
 
 	// 配置信息
 	GlobalConfig *Config

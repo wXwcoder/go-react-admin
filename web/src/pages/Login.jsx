@@ -23,8 +23,9 @@ const Login = () => {
       const data = await response.json();
       
       if (response.ok) {
-        // 保存token到localStorage
+        // 保存token和userId到localStorage
         localStorage.setItem('token', data.token);
+        localStorage.setItem('userId', data.userId);
         // 跳转到主页
         navigate('/dashboard');
       } else {

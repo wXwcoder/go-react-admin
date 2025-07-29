@@ -25,6 +25,12 @@ func main() {
 	// 初始化Redis
 	initialize.InitRedis()
 
+	// 初始化Casbin权限管理
+	initialize.InitCasbin()
+
+	// 初始化默认权限策略
+	initialize.InitDefaultPolicies()
+
 	// 初始化管理员用户
 	initialize.InitAdminUser()
 

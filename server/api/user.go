@@ -44,6 +44,7 @@ func Login(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"message": "登录成功",
 		"token":   token,
+		"userId":  dbUser.ID,
 	})
 }
 

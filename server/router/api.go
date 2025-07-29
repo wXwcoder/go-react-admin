@@ -9,6 +9,9 @@ import (
 
 // InitApiRoutes 初始化API路由
 func InitApiRoutes(r *gin.Engine) {
+	// 初始化API实例
+	permissionApi := api.NewPermissionApi()
+
 	// 公开路由
 	public := r.Group("/api/v1")
 	{
@@ -47,10 +50,39 @@ func InitApiRoutes(r *gin.Engine) {
 		protected.PUT("/api/update/:id", api.UpdateApi)
 		protected.DELETE("/api/delete/:id", api.DeleteApi)
 
+		// 权限管理路由
+		permissions := protected.Group("/permissions")
+		{
+			// 角色权限管理
+			permissions.POST("/role", permissionApi.AssignRolePermissions)
+			permissions.GET("/role/:id", permissionApi.GetRolePermissions)
+			
+			// 用户角色管理
+			permissions.POST("/user", permissionApi.AssignUserRoles)
+			permissions.GET("/user/:id/roles", permissionApi.GetUserRoles)
+			permissions.GET("/user/:id/permissions", permissionApi.GetUserPermissions)
+			
+			// 权限检查
+			permissions.GET("/check", permissionApi.CheckPermission)
+		}
+
 		// 日志相关路由
 		protected.GET("/log/list", api.GetLogList)
 
 		// 租户相关路由
 		protected.GET("/tenant/list", api.GetTenantList)
+	}
+
+	// 需要权限验证的路由
+	authorized := r.Group("/api/v1")
+	authorized.Use(middleware.JWTAuth())
+	authorized.Use(middleware.CasbinMiddleware())
+	{
+		// 这里可以添加需要特定权限的路由
+		// 例如：只有管理员才能访问的路由
+		authorized.GET("/admin/users", api.GetUserList)
+		authorized.GET("/admin/roles", api.GetRoleList)
+		authorized.GET("/admin/menus", api.GetMenuList)
+		authorized.GET("/admin/apis", api.GetApiList)
 	}
 }

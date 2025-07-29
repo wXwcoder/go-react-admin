@@ -69,12 +69,26 @@ export const roleApi = {
 export const menuApi = {
   // 获取菜单列表
   getMenuList: () => api.get('/menu/list'),
+  // 获取菜单树
+  getMenuTree: () => api.get('/menu/tree'),
+  // 获取用户菜单权限
+  getUserMenus: (userId) => api.get(`/menu/user/${userId}`),
+  // 获取当前用户菜单
+  getCurrentUserMenus: () => api.get('/menu/current'),
   // 创建菜单
   createMenu: (data) => api.post('/menu/create', data),
   // 更新菜单
   updateMenu: (id, data) => api.put(`/menu/update/${id}`, data),
   // 删除菜单
   deleteMenu: (id) => api.delete(`/menu/delete/${id}`),
+  // 批量删除菜单
+  batchDeleteMenus: (ids) => api.delete('/menu/batch', { data: { ids } }),
+  // 更新菜单排序
+  updateMenuSort: (data) => api.put('/menu/sort', data),
+  // 获取菜单详情
+  getMenuDetail: (id) => api.get(`/menu/detail/${id}`),
+  // 搜索菜单
+  searchMenus: (keyword) => api.get(`/menu/search?keyword=${keyword}`),
 };
 
 // API相关API
@@ -87,6 +101,60 @@ export const apiApi = {
   updateApi: (id, data) => api.put(`/api/update/${id}`, data),
   // 删除API
   deleteApi: (id) => api.delete(`/api/delete/${id}`),
+};
+
+// 权限管理相关API
+export const permissionApi = {
+  // 分配角色权限
+  assignRolePermissions: (data) => api.post('/permissions/role', data),
+  // 获取角色权限
+  getRolePermissions: (roleId) => api.get(`/permissions/role/${roleId}`),
+  // 分配用户角色
+  assignUserRoles: (data) => api.post('/permissions/user', data),
+  // 获取用户角色
+  getUserRoles: (userId) => api.get(`/permissions/user/${userId}/roles`),
+  // 获取用户权限
+  getUserPermissions: (userId) => api.get(`/permissions/user/${userId}/permissions`),
+  // 检查权限
+  checkPermission: (resource, action) => api.get(`/permissions/check?resource=${resource}&action=${action}`),
+  // 批量检查权限
+  batchCheckPermissions: (permissions) => api.post('/permissions/batch-check', { permissions }),
+};
+
+// 用户偏好设置API
+export const userPreferenceApi = {
+  // 获取用户偏好设置
+  getUserPreferences: () => api.get('/user/preferences'),
+  // 更新用户偏好设置
+  updateUserPreferences: (data) => api.put('/user/preferences', data),
+  // 获取收藏菜单
+  getFavoriteMenus: () => api.get('/user/favorite-menus'),
+  // 添加收藏菜单
+  addFavoriteMenu: (menuId) => api.post('/user/favorite-menus', { menuId }),
+  // 移除收藏菜单
+  removeFavoriteMenu: (menuId) => api.delete(`/user/favorite-menus/${menuId}`),
+  // 获取最近访问菜单
+  getRecentMenus: () => api.get('/user/recent-menus'),
+  // 记录菜单访问
+  recordMenuAccess: (menuId) => api.post('/user/recent-menus', { menuId }),
+  // 清空最近访问
+  clearRecentMenus: () => api.delete('/user/recent-menus'),
+};
+
+// Tab页签管理API
+export const tabApi = {
+  // 获取用户Tab配置
+  getUserTabs: () => api.get('/user/tabs'),
+  // 保存用户Tab配置
+  saveUserTabs: (tabs) => api.put('/user/tabs', { tabs }),
+  // 获取Tab页面缓存
+  getTabCache: (tabId) => api.get(`/user/tab-cache/${tabId}`),
+  // 保存Tab页面缓存
+  saveTabCache: (tabId, data) => api.put(`/user/tab-cache/${tabId}`, data),
+  // 清除Tab页面缓存
+  clearTabCache: (tabId) => api.delete(`/user/tab-cache/${tabId}`),
+  // 清除所有Tab缓存
+  clearAllTabCache: () => api.delete('/user/tab-cache'),
 };
 
 export default api;

@@ -1,34 +1,115 @@
-import React, { useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Modal from 'react-modal';
 import Login from './pages/Login';
-import UserManagement from './pages/UserManagement';
-import RoleManagement from './pages/RoleManagement';
-import MenuManagement from './pages/MenuManagement';
-import ApiManagement from './pages/ApiManagement';
-import Dashboard from './pages/Dashboard';
 import Layout from './components/Layout';
+import { staticRoutes } from './routes';
+import { menuApi } from './api';
 import './assets/styles/App.css';
 
+// 权限路由守卫
+const ProtectedRoute = ({ children }) => {
+  const token = localStorage.getItem('token');
+  
+  if (!token) {
+    return <Navigate to="/login" replace />;
+  }
+  
+  return children;
+};
+
 function App() {
+  const [dynamicRoutes, setDynamicRoutes] = useState([]);
+  const [loading, setLoading] = useState(true);
+
   useEffect(() => {
     // 设置 Modal 的 App 元素
     Modal.setAppElement('#root');
+    
+    // 初始化应用
+    initializeApp();
   }, []);
+
+  const initializeApp = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (token) {
+        // 获取用户菜单权限
+        await loadUserMenus();
+      }
+    } catch (error) {
+      console.error('应用初始化失败:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadUserMenus = async () => {
+    try {
+      const response = await menuApi.getCurrentUserMenus();
+      const menuData = response.data.data || [];
+      
+      // 这里可以根据菜单数据生成动态路由
+      // const routes = generateDynamicRoutes(menuData);
+      // setDynamicRoutes(routes);
+      
+      console.log('用户菜单数据:', menuData);
+    } catch (error) {
+      console.error('获取用户菜单失败:', error);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="app-loading">
+        <div className="loading-spinner">
+          <i className="fas fa-spinner fa-spin"></i>
+          <span>应用加载中...</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <Router>
       <div className="App">
         <Routes>
-          <Route path="/" element={<Login />} />
+          {/* 公开路由 */}
           <Route path="/login" element={<Login />} />
-          <Route element={<Layout />}>
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/user" element={<UserManagement />} />
-            <Route path="/role" element={<RoleManagement />} />
-            <Route path="/menu" element={<MenuManagement />} />
-            <Route path="/api" element={<ApiManagement />} />
+          
+          {/* 受保护的路由 */}
+          <Route path="/" element={
+            <ProtectedRoute>
+              <Layout />
+            </ProtectedRoute>
+          }>
+            {/* 静态路由 */}
+            {staticRoutes.map((route, index) => (
+              <Route
+                key={index}
+                path={route.path}
+                element={route.element}
+              />
+            ))}
+            
+            {/* 动态路由 */}
+            {dynamicRoutes.map((route, index) => (
+              <Route
+                key={`dynamic-${index}`}
+                path={route.path}
+                element={route.element}
+              />
+            ))}
           </Route>
+          
+          {/* 404 页面 */}
+          <Route path="*" element={
+            <div className="not-found">
+              <h2>404 - 页面未找到</h2>
+              <p>您访问的页面不存在</p>
+              <button onClick={() => window.history.back()}>返回上一页</button>
+            </div>
+          } />
         </Routes>
       </div>
     </Router>
