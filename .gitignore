@@ -34,3 +34,6 @@ go.work.sum
 web/node_modules
 web/dist    # 前端构建输出目录
 .vercel
+server/tools
+server/sql
+.vscode

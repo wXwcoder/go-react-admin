@@ -12,9 +12,9 @@ type RoleMenu struct {
 	CreatedAt time.Time      `json:"created_at"`
 	UpdatedAt time.Time      `json:"updated_at"`
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"deleted_at"`
-	RoleID    uint           `gorm:"index" json:"role_id"`
-	MenuID    uint           `gorm:"index" json:"menu_id"`
-	TenantID  uint           `gorm:"index" json:"tenant_id"` // 租户ID
+	RoleID    uint           `gorm:"index;uniqueIndex:idx_role_menu_tenant" json:"role_id"`
+	MenuID    uint           `gorm:"index;uniqueIndex:idx_role_menu_tenant" json:"menu_id"`
+	TenantID  uint           `gorm:"index;uniqueIndex:idx_role_menu_tenant" json:"tenant_id"` // 租户ID
 }
 
 // TableName 自定义表名

@@ -70,100 +70,72 @@
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
-/* 搜索区域 */
-.sidebar-search {
-  padding: 16px 20px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+/* 菜单组样式 */
+.menu-group {
+  margin-bottom: 8px;
 }
 
-.search-input-container {
-  position: relative;
+.menu-group-header {
   display: flex;
   align-items: center;
-}
-
-.search-icon {
-  position: absolute;
-  left: 12px;
-  color: #7f8c8d;
-  font-size: 14px;
-  z-index: 1;
-}
-
-.search-input {
-  width: 100%;
-  padding: 10px 12px 10px 36px;
-  border: none;
-  border-radius: 6px;
-  background-color: rgba(255, 255, 255, 0.1);
-  color: white;
-  font-size: 14px;
-  transition: all 0.2s;
-}
-
-.search-input::placeholder {
-  color: #95a5a6;
-}
-
-.search-input:focus {
-  outline: none;
-  background-color: rgba(255, 255, 255, 0.15);
-  box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.3);
-}
-
-.clear-search {
-  position: absolute;
-  right: 8px;
-  background: none;
-  border: none;
-  color: #7f8c8d;
-  cursor: pointer;
-  padding: 4px;
-  border-radius: 2px;
-  font-size: 12px;
-}
-
-.clear-search:hover {
-  color: white;
-}
-
-/* 视图切换标签 */
-.sidebar-tabs {
-  display: flex;
   padding: 12px 20px;
-  gap: 4px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  color: #ecf0f1;
+  cursor: pointer;
+  transition: all 0.2s;
+  border-left: 3px solid transparent;
+  position: relative;
+  background-color: rgba(255, 255, 255, 0.05);
+  font-weight: 600;
 }
 
-.tab-btn {
-  flex: 1;
+.menu-group-header:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  border-left-color: #3498db;
+}
+
+.menu-group-header.collapsed {
+  padding: 12px;
+  justify-content: center;
+}
+
+.menu-group-content {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 6px;
-  padding: 8px 12px;
-  background: none;
-  border: none;
-  color: #bdc3c7;
-  cursor: pointer;
-  border-radius: 4px;
-  transition: all 0.2s;
-  font-size: 12px;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.menu-group-icon {
+  margin-right: 12px;
+  font-size: 16px;
+  width: 20px;
+  text-align: center;
+  flex-shrink: 0;
+  color: #3498db;
+}
+
+.menu-group-text {
+  flex: 1;
+  font-size: 14px;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.tab-btn:hover {
-  background-color: rgba(255, 255, 255, 0.1);
-  color: white;
-}
-
-.tab-btn.active {
-  background-color: #3498db;
-  color: white;
-}
-
-.tab-btn i {
+.menu-group-expand {
+  color: #bdc3c7;
   font-size: 12px;
+  transition: transform 0.2s;
+}
+
+.menu-group-expand.expanded {
+  transform: rotate(180deg);
+}
+
+.menu-group-children {
+  background-color: rgba(0, 0, 0, 0.1);
+  border-left: 2px solid rgba(52, 152, 219, 0.3);
+  margin-left: 20px;
 }
 
 /* 菜单区域 */
@@ -211,6 +183,24 @@
   position: relative;
 }
 
+/* 菜单组样式 */
+.menu-item.menu-group {
+  background-color: rgba(255, 255, 255, 0.05);
+  color: #ecf0f1;
+  font-weight: 600;
+  border-left-color: rgba(52, 152, 219, 0.3);
+}
+
+.menu-item.menu-group:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  border-left-color: #3498db;
+}
+
+.menu-item.menu-group .menu-icon {
+  color: #3498db;
+}
+
+/* 普通菜单项样式 */
 .menu-item:hover {
   background-color: rgba(255, 255, 255, 0.08);
   color: white;
@@ -262,25 +252,6 @@
 
 .menu-item:hover .menu-actions {
   opacity: 1;
-}
-
-.favorite-btn {
-  background: none;
-  border: none;
-  color: #7f8c8d;
-  cursor: pointer;
-  padding: 4px;
-  border-radius: 2px;
-  font-size: 12px;
-  transition: all 0.2s;
-}
-
-.favorite-btn:hover {
-  color: #f39c12;
-}
-
-.favorite-btn.active {
-  color: #f39c12;
 }
 
 .expand-icon {

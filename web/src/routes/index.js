@@ -56,8 +56,17 @@ export const staticRoutes = [
       keepAlive: true
     }
   },
+  // 系统管理路由
   {
-    path: '/users',
+    path: '/system',
+    element: <Navigate to="/system/users" replace />,
+    meta: {
+      title: '系统管理',
+      hidden: true
+    }
+  },
+  {
+    path: '/system/users',
     element: (
       <PermissionWrapper permission={{ resource: 'user', action: 'read' }}>
         <UserManagement />
@@ -70,7 +79,7 @@ export const staticRoutes = [
     }
   },
   {
-    path: '/roles',
+    path: '/system/roles',
     element: (
       <PermissionWrapper permission={{ resource: 'role', action: 'read' }}>
         <RoleManagement />
@@ -83,7 +92,7 @@ export const staticRoutes = [
     }
   },
   {
-    path: '/menus',
+    path: '/system/menus',
     element: (
       <PermissionWrapper permission={{ resource: 'menu', action: 'read' }}>
         <MenuManagement />
@@ -96,7 +105,7 @@ export const staticRoutes = [
     }
   },
   {
-    path: '/apis',
+    path: '/system/apis',
     element: (
       <PermissionWrapper permission={{ resource: 'api', action: 'read' }}>
         <ApiManagement />
@@ -109,7 +118,7 @@ export const staticRoutes = [
     }
   },
   {
-    path: '/permissions',
+    path: '/system/permissions',
     element: (
       <PermissionWrapper permission={{ resource: 'permission', action: 'read' }}>
         <PermissionManagement />
@@ -121,50 +130,42 @@ export const staticRoutes = [
       keepAlive: true
     }
   },
-  // 添加常用路径的重定向
+  // 兼容旧路径的重定向
   {
-    path: '/system',
-    element: <Navigate to="/users" replace />,
-    meta: {
-      title: '系统管理',
-      hidden: true
-    }
-  },
-  {
-    path: '/user',
-    element: <Navigate to="/users" replace />,
+    path: '/users',
+    element: <Navigate to="/system/users" replace />,
     meta: {
       title: '用户管理',
       hidden: true
     }
   },
   {
-    path: '/role',
-    element: <Navigate to="/roles" replace />,
+    path: '/roles',
+    element: <Navigate to="/system/roles" replace />,
     meta: {
       title: '角色管理',
       hidden: true
     }
   },
   {
-    path: '/menu',
-    element: <Navigate to="/menus" replace />,
+    path: '/menus',
+    element: <Navigate to="/system/menus" replace />,
     meta: {
       title: '菜单管理',
       hidden: true
     }
   },
   {
-    path: '/api',
-    element: <Navigate to="/apis" replace />,
+    path: '/apis',
+    element: <Navigate to="/system/apis" replace />,
     meta: {
       title: 'API管理',
       hidden: true
     }
   },
   {
-    path: '/permission',
-    element: <Navigate to="/permissions" replace />,
+    path: '/permissions',
+    element: <Navigate to="/system/permissions" replace />,
     meta: {
       title: '权限管理',
       hidden: true

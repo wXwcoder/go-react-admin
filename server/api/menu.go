@@ -26,6 +26,24 @@ func GetMenuList(c *gin.Context) {
 	})
 }
 
+// GetUserMenus 获取用户菜单
+func GetUserMenus(c *gin.Context) {
+	var menus []model.Menu
+	// 暂时返回所有菜单，后续可以根据用户权限过滤
+	if err := global.DB.Where("status = ?", 1).Order("sort ASC").Find(&menus).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "获取用户菜单失败",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"code": 200,
+		"data": menus,
+		"message": "获取用户菜单成功",
+	})
+}
+
 // CreateMenu 创建菜单
 func CreateMenu(c *gin.Context) {
 	var menu model.Menu

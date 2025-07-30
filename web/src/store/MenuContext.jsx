@@ -8,9 +8,6 @@ const initialState = {
   openTabs: [{ id: 'dashboard', name: '仪表板', path: '/dashboard', closable: false }],
   activeTab: 'dashboard',
   sidebarCollapsed: false,
-  favoriteMenus: JSON.parse(localStorage.getItem('favoriteMenus') || '[]'),
-  recentMenus: JSON.parse(localStorage.getItem('recentMenus') || '[]'),
-  menuSearchText: '',
   loading: false,
   error: null
 };
@@ -27,10 +24,6 @@ const ActionTypes = {
   CLOSE_OTHER_TABS: 'CLOSE_OTHER_TABS',
   CLOSE_ALL_TABS: 'CLOSE_ALL_TABS',
   TOGGLE_SIDEBAR: 'TOGGLE_SIDEBAR',
-  ADD_FAVORITE: 'ADD_FAVORITE',
-  REMOVE_FAVORITE: 'REMOVE_FAVORITE',
-  ADD_RECENT: 'ADD_RECENT',
-  SET_SEARCH_TEXT: 'SET_SEARCH_TEXT',
   REFRESH_TAB: 'REFRESH_TAB'
 };
 
@@ -99,24 +92,6 @@ const menuReducer = (state, action) => {
     case ActionTypes.TOGGLE_SIDEBAR:
       return { ...state, sidebarCollapsed: !state.sidebarCollapsed };
     
-    case ActionTypes.ADD_FAVORITE:
-      const newFavorites = [...state.favoriteMenus, action.payload];
-      localStorage.setItem('favoriteMenus', JSON.stringify(newFavorites));
-      return { ...state, favoriteMenus: newFavorites };
-    
-    case ActionTypes.REMOVE_FAVORITE:
-      const filteredFavorites = state.favoriteMenus.filter(id => id !== action.payload);
-      localStorage.setItem('favoriteMenus', JSON.stringify(filteredFavorites));
-      return { ...state, favoriteMenus: filteredFavorites };
-    
-    case ActionTypes.ADD_RECENT:
-      const newRecent = [action.payload, ...state.recentMenus.filter(id => id !== action.payload)].slice(0, 10);
-      localStorage.setItem('recentMenus', JSON.stringify(newRecent));
-      return { ...state, recentMenus: newRecent };
-    
-    case ActionTypes.SET_SEARCH_TEXT:
-      return { ...state, menuSearchText: action.payload };
-    
     case ActionTypes.REFRESH_TAB:
       return { ...state, refreshKey: Date.now() };
     
@@ -144,11 +119,11 @@ export const MenuProvider = ({ children }) => {
   };
 
   // 获取用户权限菜单
-  const fetchUserMenus = async (userId) => {
+  const fetchUserMenus = async () => {
     try {
       dispatch({ type: ActionTypes.SET_LOADING, payload: true });
-      const response = await permissionApi.getUserPermissions(userId);
-      const menus = response.data.data?.menus || [];
+      const response = await menuApi.getUserMenus();
+      const menus = response.data.data || [];
       dispatch({ type: ActionTypes.SET_USER_MENUS, payload: menus });
     } catch (error) {
       dispatch({ type: ActionTypes.SET_ERROR, payload: error.message });
@@ -157,14 +132,16 @@ export const MenuProvider = ({ children }) => {
 
   // 打开新标签页
   const openTab = (menu) => {
-    const tab = {
-      id: menu.id,
-      name: menu.name || menu.title,
-      path: menu.path,
-      closable: true
-    };
-    dispatch({ type: ActionTypes.ADD_TAB, payload: tab });
-    dispatch({ type: ActionTypes.ADD_RECENT, payload: menu.id });
+    // 只有非菜单组的项目才能打开标签页
+    if (menu.type !== 'group') {
+      const tab = {
+        id: menu.id,
+        name: menu.title || menu.name,
+        path: menu.path,
+        closable: true
+      };
+      dispatch({ type: ActionTypes.ADD_TAB, payload: tab });
+    }
   };
 
   // 关闭标签页
@@ -192,40 +169,16 @@ export const MenuProvider = ({ children }) => {
     dispatch({ type: ActionTypes.TOGGLE_SIDEBAR });
   };
 
-  // 添加收藏
-  const addFavorite = (menuId) => {
-    dispatch({ type: ActionTypes.ADD_FAVORITE, payload: menuId });
-  };
 
-  // 移除收藏
-  const removeFavorite = (menuId) => {
-    dispatch({ type: ActionTypes.REMOVE_FAVORITE, payload: menuId });
-  };
-
-  // 设置搜索文本
-  const setSearchText = (text) => {
-    dispatch({ type: ActionTypes.SET_SEARCH_TEXT, payload: text });
-  };
 
   // 刷新标签页
   const refreshTab = () => {
     dispatch({ type: ActionTypes.REFRESH_TAB });
   };
 
-  // 过滤菜单（根据搜索文本和权限）
+  // 过滤菜单（根据权限）
   const getFilteredMenus = () => {
-    let menus = state.userMenus.length > 0 ? state.userMenus : state.menus;
-    
-    if (state.menuSearchText) {
-      const searchLower = state.menuSearchText.toLowerCase();
-      menus = menus.filter(menu => 
-        menu.name?.toLowerCase().includes(searchLower) ||
-        menu.title?.toLowerCase().includes(searchLower) ||
-        menu.path?.toLowerCase().includes(searchLower)
-      );
-    }
-    
-    return menus;
+    return state.userMenus.length > 0 ? state.userMenus : state.menus;
   };
 
   // 构建菜单树
@@ -261,9 +214,6 @@ export const MenuProvider = ({ children }) => {
     closeOtherTabs,
     closeAllTabs,
     toggleSidebar,
-    addFavorite,
-    removeFavorite,
-    setSearchText,
     refreshTab,
     getFilteredMenus,
     buildMenuTree

@@ -81,12 +81,20 @@ const PermissionManagement = () => {
         menu_ids: selectedPermissions.menus,
         api_ids: selectedPermissions.apis
       };
-      await permissionApi.assignRolePermissions(data);
-      alert('权限分配成功');
-      setModalIsOpen(false);
+      const response = await permissionApi.assignRolePermissions(data);
+      
+      if (response.data.code === 200) {
+        alert('权限分配成功');
+        setModalIsOpen(false);
+        // 刷新数据
+        await fetchInitialData();
+      } else {
+        alert('权限分配失败: ' + response.data.msg);
+      }
     } catch (error) {
       console.error('分配权限失败:', error);
-      alert('权限分配失败');
+      const errorMsg = error.response?.data?.msg || error.message || '权限分配失败';
+      alert('权限分配失败: ' + errorMsg);
     }
   };
 
@@ -97,12 +105,20 @@ const PermissionManagement = () => {
         user_id: currentItem.id,
         role_ids: selectedPermissions.roles
       };
-      await permissionApi.assignUserRoles(data);
-      alert('角色分配成功');
-      setModalIsOpen(false);
+      const response = await permissionApi.assignUserRoles(data);
+      
+      if (response.data.code === 200) {
+        alert('角色分配成功');
+        setModalIsOpen(false);
+        // 刷新数据
+        await fetchInitialData();
+      } else {
+        alert('角色分配失败: ' + response.data.msg);
+      }
     } catch (error) {
       console.error('分配角色失败:', error);
-      alert('角色分配失败');
+      const errorMsg = error.response?.data?.msg || error.message || '角色分配失败';
+      alert('角色分配失败: ' + errorMsg);
     }
   };
 

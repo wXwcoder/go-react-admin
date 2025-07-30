@@ -12,9 +12,9 @@ type UserRole struct {
 	CreatedAt time.Time      `json:"created_at"`
 	UpdatedAt time.Time      `json:"updated_at"`
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"deleted_at"`
-	UserID    uint           `gorm:"index" json:"user_id"`
-	RoleID    uint           `gorm:"index" json:"role_id"`
-	TenantID  uint           `gorm:"index" json:"tenant_id"` // 租户ID
+	UserID    uint           `gorm:"index;uniqueIndex:idx_user_role_tenant" json:"user_id"`
+	RoleID    uint           `gorm:"index;uniqueIndex:idx_user_role_tenant" json:"role_id"`
+	TenantID  uint           `gorm:"index;uniqueIndex:idx_user_role_tenant" json:"tenant_id"` // 租户ID
 }
 
 // TableName 自定义表名

@@ -95,14 +95,14 @@ const MenuManagement = () => {
           <tbody>
             {menus.map(menu => (
               <tr key={menu.id}>
-                <td>{menu.id}</td>
-                <td>{menu.name}</td>
-                <td>{menu.path}</td>
-                <td>{menu.icon}</td>
-                <td>{menu.parentId}</td>
-                <td>{menu.order}</td>
-                <td>{menu.status === 1 ? '启用' : '禁用'}</td>
-                <td>
+              <td>{menu.id}</td>
+              <td>{menu.name}</td>
+              <td>{menu.path}</td>
+              <td>{menu.icon}</td>
+              <td>{menu.parent_id}</td>
+              <td>{menu.sort}</td>
+              <td>{menu.status === 1 ? '启用' : '禁用'}</td>
+              <td>
                   <button 
                     style={{ marginRight: '5px', padding: '5px 10px', backgroundColor: '#007bff', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
                     onClick={() => {
@@ -150,8 +150,8 @@ const MenuManagement = () => {
             name: formData.get('name'),
             path: formData.get('path'),
             icon: formData.get('icon'),
-            parentId: parseInt(formData.get('parentId')),
-            order: parseInt(formData.get('order')),
+            parent_id: parseInt(formData.get('parent_id')),
+            sort: parseInt(formData.get('sort')),
             status: parseInt(formData.get('status')) || 1
           };
           
@@ -186,19 +186,30 @@ const MenuManagement = () => {
           </div>
           <div style={{ marginBottom: '15px' }}>
             <label>图标: </label>
-            <input 
-              type="text" 
+            <select 
               name="icon" 
               defaultValue={currentMenu?.icon || ''} 
               style={{ width: '100%', padding: '8px', marginTop: '5px' }}
-            />
+            >
+              <option value="">请选择图标</option>
+              <option value="dashboard">dashboard</option>
+              <option value="user">user</option>
+              <option value="setting">setting</option>
+              <option value="menu">menu</option>
+              <option value="role">role</option>
+              <option value="permission">permission</option>
+              <option value="tenant">tenant</option>
+              <option value="api">api</option>
+              <option value="log">log</option>
+              <option value="home">home</option>
+            </select>
           </div>
           <div style={{ marginBottom: '15px' }}>
             <label>父级ID: </label>
             <input 
               type="number" 
-              name="parentId" 
-              defaultValue={currentMenu?.parentId || 0} 
+              name="parent_id" 
+              defaultValue={currentMenu?.parent_id || 0} 
               style={{ width: '100%', padding: '8px', marginTop: '5px' }}
             />
           </div>
@@ -206,8 +217,8 @@ const MenuManagement = () => {
             <label>排序: </label>
             <input 
               type="number" 
-              name="order" 
-              defaultValue={currentMenu?.order || 0} 
+              name="sort" 
+              defaultValue={currentMenu?.sort || 0} 
               style={{ width: '100%', padding: '8px', marginTop: '5px' }}
             />
           </div>

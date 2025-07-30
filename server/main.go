@@ -34,6 +34,9 @@ func main() {
 	// 初始化管理员用户
 	initialize.InitAdminUser()
 
+	// 初始化菜单数据
+	initialize.InitMenuData()
+
 	// 创建Gin路由器
 	gin.SetMode(gin.ReleaseMode)
 	r := gin.Default()

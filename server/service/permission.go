@@ -7,17 +7,19 @@ import (
 	"go-react-admin/global"
 	"go-react-admin/initialize"
 	"go-react-admin/model"
+
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type PermissionService struct{}
 
 // PermissionRequest 权限请求结构
 type PermissionRequest struct {
-	RoleID   uint     `json:"role_id" binding:"required"`
-	MenuIDs  []uint   `json:"menu_ids"`
-	ApiIDs   []uint   `json:"api_ids"`
-	TenantID uint     `json:"tenant_id"`
+	RoleID   uint   `json:"role_id" binding:"required"`
+	MenuIDs  []uint `json:"menu_ids"`
+	ApiIDs   []uint `json:"api_ids"`
+	TenantID uint   `json:"tenant_id"`
 }
 
 // UserRoleRequest 用户角色请求结构
@@ -29,17 +31,17 @@ type UserRoleRequest struct {
 
 // RolePermissionResponse 角色权限响应结构
 type RolePermissionResponse struct {
-	RoleID  uint                `json:"role_id"`
-	Role    *model.Role         `json:"role"`
-	Menus   []model.Menu        `json:"menus"`
-	Apis    []model.Api         `json:"apis"`
+	RoleID uint         `json:"role_id"`
+	Role   *model.Role  `json:"role"`
+	Menus  []model.Menu `json:"menus"`
+	Apis   []model.Api  `json:"apis"`
 }
 
 // UserRoleResponse 用户角色响应结构
 type UserRoleResponse struct {
-	UserID uint          `json:"user_id"`
-	User   *model.User   `json:"user"`
-	Roles  []model.Role  `json:"roles"`
+	UserID uint         `json:"user_id"`
+	User   *model.User  `json:"user"`
+	Roles  []model.Role `json:"roles"`
 }
 
 // AssignRolePermissions 分配角色权限
@@ -68,7 +70,10 @@ func (s *PermissionService) AssignRolePermissions(req *PermissionRequest) error 
 				MenuID:   menuID,
 				TenantID: req.TenantID,
 			}
-			if err := tx.Create(&roleMenu).Error; err != nil {
+			if err := tx.Clauses(clause.OnConflict{
+				Columns:   []clause.Column{{Name: "role_id"}, {Name: "menu_id"}, {Name: "tenant_id"}},
+				UpdateAll: true,
+			}).Create(&roleMenu).Error; err != nil {
 				return err
 			}
 		}
@@ -80,7 +85,10 @@ func (s *PermissionService) AssignRolePermissions(req *PermissionRequest) error 
 				ApiID:    apiID,
 				TenantID: req.TenantID,
 			}
-			if err := tx.Create(&roleApi).Error; err != nil {
+			if err := tx.Clauses(clause.OnConflict{
+				Columns:   []clause.Column{{Name: "role_id"}, {Name: "api_id"}, {Name: "tenant_id"}},
+				UpdateAll: true,
+			}).Create(&roleApi).Error; err != nil {
 				return err
 			}
 		}
@@ -88,6 +96,13 @@ func (s *PermissionService) AssignRolePermissions(req *PermissionRequest) error 
 		// 更新Casbin策略
 		if err := s.updateCasbinPoliciesForRole(req.RoleID, req.ApiIDs, req.TenantID); err != nil {
 			return err
+		}
+
+		// 保存Casbin策略
+		if global.Enforcer != nil {
+			if err := global.Enforcer.SavePolicy(); err != nil {
+				return err
+			}
 		}
 
 		return nil
@@ -108,6 +123,11 @@ func (s *PermissionService) AssignUserRoles(req *UserRoleRequest) error {
 			return err
 		}
 
+		// 删除用户在Casbin中的所有角色关联
+		if err := s.removeAllUserRoles(req.UserID, req.TenantID); err != nil {
+			return err
+		}
+
 		// 添加新的用户角色关联
 		for _, roleID := range req.RoleIDs {
 			userRole := model.UserRole{
@@ -115,12 +135,23 @@ func (s *PermissionService) AssignUserRoles(req *UserRoleRequest) error {
 				RoleID:   roleID,
 				TenantID: req.TenantID,
 			}
-			if err := tx.Create(&userRole).Error; err != nil {
+			// 使用OnConflict实现存在则更新，不存在则插入
+			if err := tx.Clauses(clause.OnConflict{
+				Columns:   []clause.Column{{Name: "user_id"}, {Name: "role_id"}, {Name: "tenant_id"}},
+				UpdateAll: true,
+			}).Create(&userRole).Error; err != nil {
 				return err
 			}
 
 			// 更新Casbin用户角色关联
 			if err := initialize.AddUserRole(req.UserID, roleID, req.TenantID); err != nil {
+				return err
+			}
+		}
+
+		// 保存Casbin策略
+		if global.Enforcer != nil {
+			if err := global.Enforcer.SavePolicy(); err != nil {
 				return err
 			}
 		}
@@ -252,8 +283,8 @@ func (s *PermissionService) updateCasbinPoliciesForRole(roleID uint, apiIDs []ui
 		}
 	}
 
-	// 保存策略
-	return global.Enforcer.SavePolicy()
+	// 不在这里保存策略，由调用方统一保存
+	return nil
 }
 
 // CheckUserPermission 检查用户是否有特定权限
@@ -269,12 +300,12 @@ func (s *PermissionService) CheckUserPermission(userID uint, resource, action st
 
 	// 资源名称到API路径的映射
 	resourceToPath := map[string]string{
-		"dashboard":   "/api/v1/dashboard",
-		"user":        "/api/v1/user/list",
-		"role":        "/api/v1/role/list", 
-		"menu":        "/api/v1/menu/list",
-		"api":         "/api/v1/api/list",
-		"permission":  "/api/v1/permissions",
+		"dashboard":  "/api/v1/dashboard",
+		"user":       "/api/v1/users",
+		"role":       "/api/v1/roles",
+		"menu":       "/api/v1/menus",
+		"api":        "/api/v1/apis",
+		"permission": "/api/v1/permissions",
 	}
 
 	// 动作到HTTP方法的映射
@@ -301,19 +332,38 @@ func (s *PermissionService) CheckUserPermission(userID uint, resource, action st
 	userIDStr := fmt.Sprintf("%d", userID)
 	tenantIDStr := fmt.Sprintf("%d", tenantID)
 
-	// 首先尝试使用映射后的路径检查
+	// 使用Casbin的RBAC模型检查用户权限
+	// 在RBAC模型中，权限是赋予角色的，用户通过分组策略关联到角色
 	allowed, err := global.Enforcer.Enforce(userIDStr, apiPath, httpMethod, tenantIDStr)
 	if err != nil {
+		fmt.Printf("权限检查错误: userID=%d, path=%s, method=%s, tenantID=%d, error: %v", userID, apiPath, httpMethod, tenantID, err)
 		return false, err
 	}
 
 	// 如果映射路径检查失败，尝试直接使用原始资源名称检查
 	if !allowed {
+		fmt.Printf("权限检查失败，尝试原始资源: userID=%d, resource=%s, action=%s, tenantID=%d", userID, resource, action, tenantID)
 		allowed, err = global.Enforcer.Enforce(userIDStr, resource, action, tenantIDStr)
 		if err != nil {
+			fmt.Printf("原始资源权限检查错误: userID=%d, resource=%s, action=%s, tenantID=%d, error: %v", userID, resource, action, tenantID, err)
 			return false, err
 		}
 	}
 
+	fmt.Printf("权限检查结果: userID=%d, resource=%s, action=%s, tenantID=%d, allowed=%v", userID, resource, action, tenantID, allowed)
 	return allowed, nil
+}
+
+// removeAllUserRoles 删除用户的所有角色关联
+func (s *PermissionService) removeAllUserRoles(userID, tenantID uint) error {
+	if global.Enforcer == nil {
+		return errors.New("casbin enforcer not initialized")
+	}
+
+	userIDStr := fmt.Sprintf("%d", userID)
+	tenantIDStr := fmt.Sprintf("%d", tenantID)
+
+	// 删除用户的所有分组策略（角色关联）
+	_, err := global.Enforcer.RemoveFilteredGroupingPolicy(0, userIDStr, "", tenantIDStr)
+	return err
 }

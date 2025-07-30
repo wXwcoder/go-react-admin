@@ -12,24 +12,14 @@ const Sidebar = () => {
     openTab,
     getFilteredMenus,
     buildMenuTree,
-    favoriteMenus,
-    recentMenus,
-    addFavorite,
-    removeFavorite,
-    menuSearchText,
-    setSearchText,
     fetchUserMenus
   } = useMenu();
 
-  const [expandedMenus, setExpandedMenus] = useState(new Set());
-  const [activeView, setActiveView] = useState('all'); // 'all', 'favorites', 'recent'
+  const [expandedMenus, setExpandedMenus] = useState(new Set(['system'])); // 默认展开系统管理
 
   useEffect(() => {
     // 获取当前用户的菜单权限
-    const userId = localStorage.getItem('userId');
-    if (userId) {
-      fetchUserMenus(userId);
-    }
+    fetchUserMenus();
   }, []); // 空依赖数组，只在组件挂载时执行一次
 
   // 切换菜单展开状态
@@ -45,35 +35,27 @@ const Sidebar = () => {
 
   // 处理菜单点击
   const handleMenuClick = (menu) => {
-    if (menu.children && menu.children.length > 0) {
-      toggleMenuExpand(menu.id);
+    if (menu.type === 'group' || (menu.children && menu.children.length > 0)) {
+      // 菜单组或有子菜单的项目，切换展开状态
+      toggleMenuExpand(menu.name || menu.id);
     } else {
+      // 普通菜单项，导航到对应页面
       openTab(menu);
       navigate(menu.path);
-    }
-  };
-
-  // 处理收藏切换
-  const handleFavoriteToggle = (e, menuId) => {
-    e.stopPropagation();
-    if (favoriteMenus.includes(menuId)) {
-      removeFavorite(menuId);
-    } else {
-      addFavorite(menuId);
     }
   };
 
   // 渲染菜单项
   const renderMenuItem = (menu, level = 0) => {
     const isActive = location.pathname === menu.path;
-    const isExpanded = expandedMenus.has(menu.id);
-    const isFavorite = favoriteMenus.includes(menu.id);
+    const isExpanded = expandedMenus.has(menu.name || menu.id);
     const hasChildren = menu.children && menu.children.length > 0;
+    const isGroup = menu.type === 'group';
 
     return (
       <div key={menu.id} className="menu-item-container">
         <div
-          className={`menu-item ${isActive ? 'active' : ''} ${sidebarCollapsed ? 'collapsed' : ''}`}
+          className={`menu-item ${isActive ? 'active' : ''} ${isGroup ? 'menu-group' : ''} ${sidebarCollapsed ? 'collapsed' : ''}`}
           style={{ paddingLeft: `${20 + level * 16}px` }}
           onClick={() => handleMenuClick(menu)}
         >
@@ -85,29 +67,20 @@ const Sidebar = () => {
             )}
             {!sidebarCollapsed && (
               <>
-                <span className="menu-text">{menu.name || menu.title}</span>
-                <div className="menu-actions">
-                  <button
-                    className={`favorite-btn ${isFavorite ? 'active' : ''}`}
-                    onClick={(e) => handleFavoriteToggle(e, menu.id)}
-                    title={isFavorite ? '取消收藏' : '添加收藏'}
-                  >
-                    <i className={isFavorite ? 'fas fa-star' : 'far fa-star'}></i>
-                  </button>
-                  {hasChildren && (
-                    <span className={`expand-icon ${isExpanded ? 'expanded' : ''}`}>
-                      <i className="fas fa-chevron-down"></i>
-                    </span>
-                  )}
-                </div>
+                <span className="menu-text">{menu.title || menu.name}</span>
+                {(hasChildren || isGroup) && (
+                  <span className={`expand-icon ${isExpanded ? 'expanded' : ''}`}>
+                    <i className="fas fa-chevron-down"></i>
+                  </span>
+                )}
               </>
             )}
           </div>
         </div>
         
-        {hasChildren && isExpanded && !sidebarCollapsed && (
+        {(hasChildren || isGroup) && isExpanded && !sidebarCollapsed && (
           <div className="submenu">
-            {menu.children.map(child => renderMenuItem(child, level + 1))}
+            {menu.children && menu.children.map(child => renderMenuItem(child, level + 1))}
           </div>
         )}
       </div>
@@ -117,22 +90,7 @@ const Sidebar = () => {
   // 获取要显示的菜单
   const getDisplayMenus = () => {
     const filteredMenus = getFilteredMenus();
-    const menuTree = buildMenuTree(filteredMenus);
-
-    switch (activeView) {
-      case 'favorites':
-        return menuTree.filter(menu => 
-          favoriteMenus.includes(menu.id) || 
-          (menu.children && menu.children.some(child => favoriteMenus.includes(child.id)))
-        );
-      case 'recent':
-        return menuTree.filter(menu => 
-          recentMenus.includes(menu.id) || 
-          (menu.children && menu.children.some(child => recentMenus.includes(child.id)))
-        );
-      default:
-        return menuTree;
-    }
+    return buildMenuTree(filteredMenus);
   };
 
   return (
@@ -147,57 +105,6 @@ const Sidebar = () => {
           <i className={`fas fa-${sidebarCollapsed ? 'angle-right' : 'angle-left'}`}></i>
         </button>
       </div>
-
-      {/* 搜索区域 */}
-      {!sidebarCollapsed && (
-        <div className="sidebar-search">
-          <div className="search-input-container">
-            <i className="fas fa-search search-icon"></i>
-            <input
-              type="text"
-              placeholder="搜索菜单..."
-              value={menuSearchText}
-              onChange={(e) => setSearchText(e.target.value)}
-              className="search-input"
-            />
-            {menuSearchText && (
-              <button
-                className="clear-search"
-                onClick={() => setSearchText('')}
-              >
-                <i className="fas fa-times"></i>
-              </button>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* 视图切换 */}
-      {!sidebarCollapsed && (
-        <div className="sidebar-tabs">
-          <button
-            className={`tab-btn ${activeView === 'all' ? 'active' : ''}`}
-            onClick={() => setActiveView('all')}
-          >
-            <i className="fas fa-list"></i>
-            <span>全部</span>
-          </button>
-          <button
-            className={`tab-btn ${activeView === 'favorites' ? 'active' : ''}`}
-            onClick={() => setActiveView('favorites')}
-          >
-            <i className="fas fa-star"></i>
-            <span>收藏</span>
-          </button>
-          <button
-            className={`tab-btn ${activeView === 'recent' ? 'active' : ''}`}
-            onClick={() => setActiveView('recent')}
-          >
-            <i className="fas fa-clock"></i>
-            <span>最近</span>
-          </button>
-        </div>
-      )}
 
       {/* 菜单区域 */}
       <nav className="sidebar-menu">

@@ -21,6 +21,7 @@ type Menu struct {
 	Sort        int            `gorm:"default:0" json:"sort"`
 	Hidden      bool           `gorm:"default:false" json:"hidden"`
 	Level       int            `gorm:"default:1" json:"level"`
+	Type        string         `gorm:"size:20;default:menu" json:"type"` // menu:菜单项 group:菜单组
 	Status      int            `gorm:"default:1" json:"status"` // 1:启用 2:禁用
 	TenantID    uint           `gorm:"index" json:"tenant_id"` // 租户ID
 }

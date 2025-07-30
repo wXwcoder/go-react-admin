@@ -40,6 +40,7 @@ func InitApiRoutes(r *gin.Engine) {
 
 		// 菜单相关路由
 		protected.GET("/menu/list", api.GetMenuList)
+		protected.GET("/menus/user", api.GetUserMenus)
 		protected.POST("/menu/create", api.CreateMenu)
 		protected.PUT("/menu/update/:id", api.UpdateMenu)
 		protected.DELETE("/menu/delete/:id", api.DeleteMenu)

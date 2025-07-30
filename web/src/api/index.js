@@ -69,26 +69,16 @@ export const roleApi = {
 export const menuApi = {
   // 获取菜单列表
   getMenuList: () => api.get('/menu/list'),
-  // 获取菜单树
-  getMenuTree: () => api.get('/menu/tree'),
-  // 获取用户菜单权限
-  getUserMenus: (userId) => api.get(`/menu/user/${userId}`),
-  // 获取当前用户菜单
-  getCurrentUserMenus: () => api.get('/menu/current'),
+  // 获取用户菜单
+  getUserMenus: () => api.get('/menus/user'),
+  // 获取当前用户菜单（别名）
+  getCurrentUserMenus: () => api.get('/menus/user'),
   // 创建菜单
   createMenu: (data) => api.post('/menu/create', data),
   // 更新菜单
   updateMenu: (id, data) => api.put(`/menu/update/${id}`, data),
   // 删除菜单
   deleteMenu: (id) => api.delete(`/menu/delete/${id}`),
-  // 批量删除菜单
-  batchDeleteMenus: (ids) => api.delete('/menu/batch', { data: { ids } }),
-  // 更新菜单排序
-  updateMenuSort: (data) => api.put('/menu/sort', data),
-  // 获取菜单详情
-  getMenuDetail: (id) => api.get(`/menu/detail/${id}`),
-  // 搜索菜单
-  searchMenus: (keyword) => api.get(`/menu/search?keyword=${keyword}`),
 };
 
 // API相关API
