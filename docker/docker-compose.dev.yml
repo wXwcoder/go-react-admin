@@ -1,0 +1,106 @@
+version: '3.8'
+
+services:
+  # MySQL Database
+  mysql:
+    image: mysql:8.0
+    container_name: go-react-mysql-dev
+    environment:
+      MYSQL_ROOT_PASSWORD: root123456
+      MYSQL_DATABASE: go_react_admin
+      MYSQL_USER: admin
+      MYSQL_PASSWORD: admin123
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./mysql_dev_data:/var/lib/mysql
+      - ../server/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "admin", "-padmin123"]
+      timeout: 20s
+      retries: 10
+      start_period: 30s
+      interval: 5s
+    networks:
+      - go-react-dev-network
+
+  # Redis
+  redis:
+    image: redis:7-alpine
+    container_name: go-react-redis-dev
+    #ports:
+    #  - "6379:6379"
+    volumes:
+      - ./redis_dev_data:/data
+    networks:
+      - go-react-dev-network
+
+  # Backend Go Server with hot reload
+  backend:
+    build:
+      context: ../server
+      dockerfile: Dockerfile.dev
+    container_name: go-react-backend-dev
+    ports:
+      - "8080:8080"
+    environment:
+      - GIN_MODE=debug
+      - SERVER_PORT=8080
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_USER=admin
+      - DB_PASSWORD=admin123
+      - DB_NAME=go_react_admin
+      - DB_CHARSET=utf8mb4
+      - DB_PARSE_TIME=true
+      - DB_LOC=Asia/Shanghai
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=
+      - REDIS_DB=0
+      - LOG_LEVEL=debug
+      - LOG_FORMAT=json
+      - LOG_OUTPUT=console
+      - JWT_SECRET=go-react-admin-secret
+      - JWT_EXPIRE=24
+      - MULTI_TENANT_ENABLED=true
+      - MULTI_TENANT_MODE=shared_schema
+      - SYSTEM_NAME=go-react-admin
+      - SYSTEM_VERSION=1.0.0
+      - SYSTEM_THEME=light
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    volumes:
+      - ../server:/app
+      - /app/tmp
+    networks:
+      - go-react-dev-network
+
+  # Frontend React App with hot reload
+  frontend:
+    build:
+      context: ../web
+      dockerfile: Dockerfile.dev
+    container_name: go-react-frontend-dev
+    ports:
+      - "3000:3000"
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+      - WATCHPACK_POLLING=true
+      - REACT_APP_API_URL=http://go-react-backend-dev:8080
+    volumes:
+      - ../web:/app
+      - /app/node_modules
+    depends_on:
+      - backend
+    networks:
+      - go-react-dev-network
+
+
+
+networks:
+  go-react-dev-network:
+    driver: bridge

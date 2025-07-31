@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { MenuProvider } from '../store/MenuContext';
+import ThemeToggle from './ThemeToggle';
 import Sidebar from './Sidebar';
 import TabBar from './TabBar';
 import '../assets/styles/Layout.css';
@@ -38,6 +39,7 @@ const Layout = () => {
               <h1>Go React Admin</h1>
             </div>
             <div className="header-right">
+              <ThemeToggle />
               <div className="user-info">
                 <span className="user-name">
                   <i className="fas fa-user"></i>
@@ -64,6 +66,11 @@ const Layout = () => {
           {/* 底部 */}
           <footer className="layout-footer">
             <p>&copy; 2024 Go React Admin. All rights reserved.</p>
+            <p style={{ marginLeft: '1rem' }}>
+              <a href="https://github.com/wXwcoder/go-react-admin" target="_blank" rel="noopener noreferrer">
+                <i className="fab fa-github"></i> GitHub Repository
+              </a>
+            </p>
           </footer>
         </div>
       </div>

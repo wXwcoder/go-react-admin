@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import Modal from 'react-modal';
 import Login from './pages/Login';
 import Layout from './components/Layout';
+import { ThemeProvider } from './store/ThemeContext';
 import { staticRoutes } from './routes';
 import { menuApi } from './api';
 import './assets/styles/App.css';
@@ -71,48 +72,50 @@ function App() {
   }
 
   return (
-    <Router>
-      <div className="App">
-        <Routes>
-          {/* 公开路由 */}
-          <Route path="/login" element={<Login />} />
-          
-          {/* 受保护的路由 */}
-          <Route path="/" element={
-            <ProtectedRoute>
-              <Layout />
-            </ProtectedRoute>
-          }>
-            {/* 静态路由 */}
-            {staticRoutes.map((route, index) => (
-              <Route
-                key={index}
-                path={route.path}
-                element={route.element}
-              />
-            ))}
+    <ThemeProvider>
+      <Router>
+        <div className="App">
+          <Routes>
+            {/* 公开路由 */}
+            <Route path="/login" element={<Login />} />
             
-            {/* 动态路由 */}
-            {dynamicRoutes.map((route, index) => (
-              <Route
-                key={`dynamic-${index}`}
-                path={route.path}
-                element={route.element}
-              />
-            ))}
-          </Route>
-          
-          {/* 404 页面 */}
-          <Route path="*" element={
-            <div className="not-found">
-              <h2>404 - 页面未找到</h2>
-              <p>您访问的页面不存在</p>
-              <button onClick={() => window.history.back()}>返回上一页</button>
-            </div>
-          } />
-        </Routes>
-      </div>
-    </Router>
+            {/* 受保护的路由 */}
+            <Route path="/" element={
+              <ProtectedRoute>
+                <Layout />
+              </ProtectedRoute>
+            }>
+              {/* 静态路由 */}
+              {staticRoutes.map((route, index) => (
+                <Route
+                  key={index}
+                  path={route.path}
+                  element={route.element}
+                />
+              ))}
+              
+              {/* 动态路由 */}
+              {dynamicRoutes.map((route, index) => (
+                <Route
+                  key={`dynamic-${index}`}
+                  path={route.path}
+                  element={route.element}
+                />
+              ))}
+            </Route>
+            
+            {/* 404 页面 */}
+            <Route path="*" element={
+              <div className="not-found">
+                <h2>404 - 页面未找到</h2>
+                <p>您访问的页面不存在</p>
+                <button onClick={() => window.history.back()}>返回上一页</button>
+              </div>
+            } />
+          </Routes>
+        </div>
+      </Router>
+    </ThemeProvider>
   );
 }
 

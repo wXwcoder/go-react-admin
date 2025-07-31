@@ -9,6 +9,7 @@ const RoleManagement = lazy(() => import('../pages/RoleManagement'));
 const MenuManagement = lazy(() => import('../pages/MenuManagement'));
 const ApiManagement = lazy(() => import('../pages/ApiManagement'));
 const PermissionManagement = lazy(() => import('../pages/PermissionManagement'));
+const LogManagement = lazy(() => import('../pages/LogManagement'));
 
 // 加载组件包装器
 const LoadingWrapper = ({ children }) => (
@@ -130,6 +131,19 @@ export const staticRoutes = [
       keepAlive: true
     }
   },
+  {
+    path: '/system/logs',
+    element: (
+      <PermissionWrapper permission={{ resource: 'log', action: 'read' }}>
+        <LogManagement />
+      </PermissionWrapper>
+    ),
+    meta: {
+      title: '日志管理',
+      icon: 'fas fa-history',
+      keepAlive: true
+    }
+  },
   // 兼容旧路径的重定向
   {
     path: '/users',
@@ -168,6 +182,14 @@ export const staticRoutes = [
     element: <Navigate to="/system/permissions" replace />,
     meta: {
       title: '权限管理',
+      hidden: true
+    }
+  },
+  {
+    path: '/logs',
+    element: <Navigate to="/system/logs" replace />,
+    meta: {
+      title: '日志管理',
       hidden: true
     }
   }

@@ -1,14 +1,15 @@
 .dashboard-container {
   padding: 20px;
+  color: var(--text-primary);
 }
 
 .dashboard-container h1 {
-  color: #2c3e50;
+  color: var(--text-primary);
   margin-bottom: 20px;
 }
 
 .dashboard-container p {
-  color: #7f8c8d;
+  color: var(--text-secondary);
   font-size: 1.1rem;
   margin-bottom: 30px;
 }
@@ -20,21 +21,22 @@
 }
 
 .dashboard-card {
-  background-color: white;
+  background-color: var(--bg-primary);
   border-radius: 8px;
   padding: 20px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow);
+  border: 1px solid var(--border-secondary);
 }
 
 .dashboard-card h3 {
   margin-top: 0;
-  color: #2c3e50;
-  border-bottom: 1px solid #ecf0f1;
+  color: var(--text-primary);
+  border-bottom: 1px solid var(--border-secondary);
   padding-bottom: 10px;
 }
 
 .dashboard-card p {
   margin: 10px 0;
-  color: #7f8c8d;
+  color: var(--text-secondary);
   font-size: 1rem;
 }

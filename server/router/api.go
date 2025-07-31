@@ -16,17 +16,18 @@ func InitApiRoutes(r *gin.Engine) {
 	public := r.Group("/api/v1")
 	{
 		// 用户相关路由
-		public.POST("/login", api.Login)
+		public.POST("/login", middleware.LoginLogger(), api.Login)
 		public.POST("/register", api.Register)
 	}
 
 	// 受保护的路由
 	protected := r.Group("/api/v1")
+	protected.Use(middleware.Logger()) // 添加操作日志记录
 	protected.Use(middleware.JWTAuth())
 	{
 		// 用户相关路由
 		protected.GET("/user/info", api.GetUserInfo)
-		protected.POST("/user/logout", api.Logout)
+		protected.POST("/user/logout", middleware.LogoutLogger(), api.Logout)
 		protected.GET("/user/list", api.GetUserList)
 		protected.POST("/user/create", api.CreateUser)
 		protected.PUT("/user/update/:id", api.UpdateUser)

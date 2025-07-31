@@ -37,6 +37,9 @@ func main() {
 	// 初始化菜单数据
 	initialize.InitMenuData()
 
+	// 初始化API数据
+	initialize.InitApiData()
+
 	// 创建Gin路由器
 	gin.SetMode(gin.ReleaseMode)
 	r := gin.Default()

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useMenu } from '../store/MenuContext';
+import { ICONS } from '../constants/icons';
 import '../assets/styles/Sidebar.css';
 
 const Sidebar = () => {

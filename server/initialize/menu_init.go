@@ -116,6 +116,20 @@ func InitMenuData() {
 			Type:     "menu",
 			Status:   1,
 		},
+		// 日志管理
+		{
+			ID:       8,
+			Name:     "logs",
+			Path:     "/system/logs",
+			Component: "LogManagement",
+			Icon:     "fas fa-history",
+			Title:    "日志管理",
+			ParentID: 2,
+			Sort:     6,
+			Level:    2,
+			Type:     "menu",
+			Status:   1,
+		},
 	}
 
 	// 批量创建菜单

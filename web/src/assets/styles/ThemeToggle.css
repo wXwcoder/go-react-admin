@@ -1,0 +1,85 @@
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+}
+
+.theme-toggle-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: transparent;
+  border: 1px solid var(--border-primary);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 14px;
+  color: var(--text-secondary);
+  outline: none;
+}
+
+.theme-toggle-btn:hover {
+  background-color: var(--bg-secondary);
+  border-color: var(--primary-color);
+  color: var(--primary-color);
+  transform: translateY(-1px);
+}
+
+.theme-toggle-btn:active {
+  transform: translateY(0);
+}
+
+.theme-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.theme-icon.light {
+  color: #f39c12;
+}
+
+.theme-icon.dark {
+  color: #3498db;
+}
+
+.theme-text {
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .theme-toggle-btn {
+    padding: 6px 10px;
+    font-size: 13px;
+  }
+  
+  .theme-text {
+    display: none;
+  }
+}
+
+/* 动画效果 */
+@keyframes themeSwitch {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.theme-toggle-btn:hover .theme-icon {
+  animation: themeSwitch 0.6s ease;
+}
+
+/* 深色主题适配 */
+.theme-dark .theme-toggle-btn {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.theme-dark .theme-toggle-btn:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}

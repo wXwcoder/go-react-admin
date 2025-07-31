@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import '../assets/styles/management.css'; // 引入样式文件
 import { menuApi } from '../api'; // 引入API
 import Modal from 'react-modal'; // 引入模态框组件
+import { MENU_ICONS, getIconLabel } from '../constants/icons'; // 引入图标常量
 
 const MenuManagement = () => {
   const [menus, setMenus] = useState([]);
@@ -84,6 +85,7 @@ const MenuManagement = () => {
             <tr>
               <th>ID</th>
               <th>菜单名称</th>
+              <th>标题</th>
               <th>路径</th>
               <th>图标</th>
               <th>父级ID</th>
@@ -97,6 +99,7 @@ const MenuManagement = () => {
               <tr key={menu.id}>
               <td>{menu.id}</td>
               <td>{menu.name}</td>
+              <td>{menu.title}</td>
               <td>{menu.path}</td>
               <td>{menu.icon}</td>
               <td>{menu.parent_id}</td>
@@ -148,6 +151,7 @@ const MenuManagement = () => {
           const formData = new FormData(e.target);
           const menuData = {
             name: formData.get('name'),
+            title: formData.get('title'),
             path: formData.get('path'),
             icon: formData.get('icon'),
             parent_id: parseInt(formData.get('parent_id')),
@@ -175,6 +179,16 @@ const MenuManagement = () => {
             />
           </div>
           <div style={{ marginBottom: '15px' }}>
+            <label>标题: </label>
+            <input 
+              type="text" 
+              name="title" 
+              defaultValue={currentMenu?.title || ''} 
+              required 
+              style={{ width: '100%', padding: '8px', marginTop: '5px' }}
+            />
+          </div>
+          <div style={{ marginBottom: '15px' }}>
             <label>路径: </label>
             <input 
               type="text" 
@@ -186,23 +200,44 @@ const MenuManagement = () => {
           </div>
           <div style={{ marginBottom: '15px' }}>
             <label>图标: </label>
-            <select 
-              name="icon" 
-              defaultValue={currentMenu?.icon || ''} 
-              style={{ width: '100%', padding: '8px', marginTop: '5px' }}
-            >
-              <option value="">请选择图标</option>
-              <option value="dashboard">dashboard</option>
-              <option value="user">user</option>
-              <option value="setting">setting</option>
-              <option value="menu">menu</option>
-              <option value="role">role</option>
-              <option value="permission">permission</option>
-              <option value="tenant">tenant</option>
-              <option value="api">api</option>
-              <option value="log">log</option>
-              <option value="home">home</option>
-            </select>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <select 
+                name="icon" 
+                defaultValue={currentMenu?.icon || ''} 
+                style={{ flex: 1, padding: '8px', marginTop: '5px' }}
+                onChange={(e) => {
+                  const preview = document.getElementById('icon-preview');
+                  if (preview) {
+                    preview.innerHTML = `<i class="${e.target.value}" style="font-size: 18px;"></i>`;
+                  }
+                }}
+              >
+                <option value="">请选择图标</option>
+                <option value="fas fa-tachometer-alt">仪表盘</option>
+                <option value="fas fa-user">用户</option>
+                <option value="fas fa-cog">设置</option>
+                <option value="fas fa-bars">菜单</option>
+                <option value="fas fa-users">角色</option>
+                <option value="fas fa-lock">权限</option>
+                <option value="fas fa-building">租户</option>
+                <option value="fas fa-plug">API</option>
+                <option value="fas fa-file-alt">日志</option>
+                <option value="fas fa-home">首页</option>
+              </select>
+              <div id="icon-preview" style={{ 
+                width: '40px', 
+                height: '40px', 
+                border: '1px solid #ddd', 
+                borderRadius: '4px', 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center',
+                fontSize: '18px'
+              }}>
+                {currentMenu?.icon && <i className={currentMenu.icon}></i>}
+                {!currentMenu?.icon && <i className="fas fa-question"></i>}
+              </div>
+            </div>
           </div>
           <div style={{ marginBottom: '15px' }}>
             <label>父级ID: </label>

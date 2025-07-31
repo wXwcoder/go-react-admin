@@ -2,7 +2,7 @@
 .layout {
   display: flex;
   height: 100vh;
-  background-color: #f0f2f5;
+  background-color: var(--bg-secondary);
   overflow: hidden;
 }
 
@@ -12,7 +12,7 @@
   display: flex;
   flex-direction: column;
   min-width: 0;
-  background-color: #f0f2f5;
+  background-color: var(--bg-secondary);
 }
 
 /* 顶部导航栏 */
@@ -22,9 +22,9 @@
   justify-content: space-between;
   height: 64px;
   padding: 0 24px;
-  background: white;
-  border-bottom: 1px solid #e8e8e8;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+  background: var(--header-bg);
+  border-bottom: 1px solid var(--border-secondary);
+  box-shadow: var(--shadow);
   z-index: 100;
 }
 
@@ -32,12 +32,13 @@
   margin: 0;
   font-size: 20px;
   font-weight: 600;
-  color: #1890ff;
+  color: var(--primary-color);
 }
 
 .header-right {
   display: flex;
   align-items: center;
+  gap: 16px;
 }
 
 .user-info {
@@ -50,13 +51,13 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  color: #333;
+  color: var(--text-primary);
   font-size: 14px;
   font-weight: 500;
 }
 
 .user-name i {
-  color: #666;
+  color: var(--text-secondary);
 }
 
 .logout-btn {
@@ -64,7 +65,7 @@
   align-items: center;
   gap: 6px;
   padding: 8px 16px;
-  background: #ff4d4f;
+  background: var(--error-color);
   color: white;
   border: none;
   border-radius: 4px;
@@ -83,7 +84,7 @@
 .layout-content {
   flex: 1;
   overflow: auto;
-  background-color: #f0f2f5;
+  background-color: var(--bg-secondary);
 }
 
 .content-wrapper {
@@ -97,9 +98,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: white;
-  border-top: 1px solid #e8e8e8;
-  color: #666;
+  background: var(--header-bg);
+  border-top: 1px solid var(--border-secondary);
+  color: var(--text-secondary);
   font-size: 14px;
 }
 

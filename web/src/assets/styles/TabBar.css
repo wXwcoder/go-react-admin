@@ -1,12 +1,12 @@
 /* Tab页签样式 */
 .tab-bar {
-  background: white;
-  border-bottom: 1px solid #e8e8e8;
+  background: var(--bg-primary);
+  border-bottom: 1px solid var(--border-secondary);
   padding: 0;
   display: flex;
   align-items: center;
   height: 40px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+  box-shadow: var(--shadow);
   position: relative;
   z-index: 100;
 }
@@ -27,23 +27,23 @@
 .tab-container::-webkit-scrollbar-track {
   background: transparent;
 }
-
+/* 滚动条样式 */
 .tab-container::-webkit-scrollbar-thumb {
-  background: #d9d9d9;
+  background: var(--border-primary);
   border-radius: 1px;
 }
 
 .tab-container::-webkit-scrollbar-thumb:hover {
-  background: #bfbfbf;
-}
+    background: var(--text-tertiary);
+  }
 
 /* Tab项 */
 .tab-item {
   display: flex;
   align-items: center;
   padding: 0 16px;
-  background: #f5f5f5;
-  border-right: 1px solid #e8e8e8;
+  background: var(--bg-secondary);
+  border-right: 1px solid var(--border-secondary);
   cursor: pointer;
   transition: all 0.2s;
   white-space: nowrap;
@@ -55,13 +55,13 @@
 }
 
 .tab-item:hover {
-  background: #e6f7ff;
+  background: var(--bg-tertiary);
 }
 
 .tab-item.active {
-  background: white;
-  border-bottom: 2px solid #1890ff;
-  color: #1890ff;
+  background: var(--bg-primary);
+  border-bottom: 2px solid var(--primary-color);
+  color: var(--primary-color);
 }
 
 .tab-item.dragging {
@@ -97,7 +97,7 @@
   background: none;
   border: none;
   cursor: pointer;
-  color: #999;
+  color: var(--text-tertiary);
   font-size: 10px;
   width: 16px;
   height: 16px;
@@ -109,13 +109,13 @@
 }
 
 .tab-close:hover {
-  background: #ff4d4f;
+  background: var(--error-color);
   color: white;
   border-radius: 50%;
 }
 
 .tab-item.active .tab-close {
-  color: #666;
+  color: var(--text-secondary);
 }
 
 /* Tab操作按钮区域 */
@@ -123,8 +123,8 @@
   display: flex;
   align-items: center;
   padding: 0 8px;
-  border-left: 1px solid #e8e8e8;
-  background: #fafafa;
+  border-left: 1px solid var(--border-secondary);
+  background: var(--bg-tertiary);
   height: 100%;
 }
 
@@ -137,34 +137,34 @@
   background: none;
   border: none;
   cursor: pointer;
-  color: #666;
+  color: var(--text-secondary);
   border-radius: 2px;
   transition: all 0.2s;
   margin: 0 2px;
 }
 
 .tab-action-btn:hover {
-  background: #e6f7ff;
-  color: #1890ff;
+  background: var(--bg-hover);
+  color: var(--primary-color);
 }
 
 .tab-action-btn:disabled {
-  color: #d9d9d9;
+  color: var(--text-tertiary);
   cursor: not-allowed;
 }
 
 .tab-action-btn:disabled:hover {
   background: none;
-  color: #d9d9d9;
+  color: var(--text-tertiary);
 }
 
 /* 右键菜单 */
 .tab-context-menu {
   position: fixed;
-  background: white;
-  border: 1px solid #d9d9d9;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-secondary);
   border-radius: 4px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: var(--shadow);
   padding: 4px 0;
   min-width: 120px;
   z-index: 1000;
@@ -176,17 +176,17 @@
   padding: 8px 16px;
   cursor: pointer;
   font-size: 13px;
-  color: #333;
+  color: var(--text-primary);
   transition: background-color 0.2s;
 }
 
 .context-menu-item:hover {
-  background: #f5f5f5;
+  background: var(--bg-hover);
 }
 
 .context-menu-item:disabled,
 .context-menu-item.disabled {
-  color: #d9d9d9;
+  color: var(--text-tertiary);
   cursor: not-allowed;
 }
 

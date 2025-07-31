@@ -37,3 +37,5 @@ web/dist    # 前端构建输出目录
 server/tools
 server/sql
 .vscode
+docker/mysql_dev_data
+docker/redis_dev_data

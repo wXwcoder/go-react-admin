@@ -9,7 +9,8 @@ require (
 	github.com/gin-gonic/gin v1.10.1
 	github.com/go-redis/redis/v8 v8.11.5
 	github.com/golang-jwt/jwt/v4 v4.5.2
-	gopkg.in/yaml.v2 v2.4.0
+	github.com/joho/godotenv v1.5.1
+	golang.org/x/crypto v0.39.0
 	gorm.io/driver/mysql v1.5.7
 	gorm.io/gorm v1.25.8
 )
@@ -56,7 +57,6 @@ require (
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	github.com/ugorji/go/codec v1.3.0 // indirect
 	golang.org/x/arch v0.18.0 // indirect
-	golang.org/x/crypto v0.39.0 // indirect
 	golang.org/x/net v0.41.0 // indirect
 	golang.org/x/sys v0.33.0 // indirect
 	golang.org/x/text v0.26.0 // indirect
