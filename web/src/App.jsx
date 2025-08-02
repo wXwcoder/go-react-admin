@@ -7,6 +7,7 @@ import { ThemeProvider } from './store/ThemeContext';
 import { staticRoutes } from './routes';
 import { menuApi } from './api';
 import './assets/styles/App.css';
+import './assets/styles/message-fix.css';
 
 // 权限路由守卫
 const ProtectedRoute = ({ children }) => {

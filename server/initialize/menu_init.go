@@ -130,6 +130,34 @@ func InitMenuData() {
 			Type:     "menu",
 			Status:   1,
 		},
+		// 动态数据管理（一级菜单组）
+		{
+			ID:       9,
+			Name:     "dynamic",
+			Path:     "/dynamic",
+			Component: "",
+			Icon:     "fas fa-database",
+			Title:    "动态数据管理",
+			ParentID: 0,
+			Sort:     3,
+			Level:    1,
+			Type:     "group",
+			Status:   1,
+		},
+		// 动态表管理
+		{
+			ID:       10,
+			Name:     "dynamic-tables",
+			Path:     "/dynamic/tables",
+			Component: "DynamicTableManagement",
+			Icon:     "fas fa-table",
+			Title:    "动态表管理",
+			ParentID: 9,
+			Sort:     1,
+			Level:    2,
+			Type:     "menu",
+			Status:   1,
+		},
 	}
 
 	// 批量创建菜单

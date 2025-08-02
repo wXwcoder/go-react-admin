@@ -11,6 +11,15 @@ import (
 )
 
 // GetApiList 获取API列表
+// @Summary 获取API列表
+// @Description 获取所有API的列表
+// @Tags API管理
+// @Accept json
+// @Produce json
+// @Security ApiKeyAuth
+// @Success 200 {object} map[string]interface{} "{"apis":[]model.Api}"
+// @Failure 500 {object} map[string]interface{} "{"error":"获取API列表失败"}"
+// @Router /api/apis [get]
 func GetApiList(c *gin.Context) {
 	var apis []model.Api
 	// 从数据库中获取所有API
@@ -27,6 +36,17 @@ func GetApiList(c *gin.Context) {
 }
 
 // CreateApi 创建API
+// @Summary 创建API
+// @Description 创建新API接口
+// @Tags API管理
+// @Accept json
+// @Produce json
+// @Security ApiKeyAuth
+// @Param api body model.Api true "API创建信息"
+// @Success 200 {object} map[string]interface{} "{"message":"创建API成功","api":model.Api}"
+// @Failure 400 {object} map[string]interface{} "{"error":"请求参数错误"}"
+// @Failure 500 {object} map[string]interface{} "{"error":"创建API失败"}"
+// @Router /api/apis [post]
 func CreateApi(c *gin.Context) {
 	var api model.Api
 	if err := c.ShouldBindJSON(&api); err != nil {
@@ -51,6 +71,18 @@ func CreateApi(c *gin.Context) {
 }
 
 // UpdateApi 更新API
+// @Summary 更新API
+// @Description 根据API ID更新API信息
+// @Tags API管理
+// @Accept json
+// @Produce json
+// @Security ApiKeyAuth
+// @Param id path int true "API ID"
+// @Param api body model.Api true "API更新信息"
+// @Success 200 {object} map[string]interface{} "{"message":"更新API成功"}"
+// @Failure 400 {object} map[string]interface{} "{"error":"请求参数错误"}"
+// @Failure 500 {object} map[string]interface{} "{"error":"更新API失败"}"
+// @Router /api/apis/{id} [put]
 func UpdateApi(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.Atoi(idStr)
@@ -83,6 +115,17 @@ func UpdateApi(c *gin.Context) {
 }
 
 // DeleteApi 删除API
+// @Summary 删除API
+// @Description 根据API ID删除API
+// @Tags API管理
+// @Accept json
+// @Produce json
+// @Security ApiKeyAuth
+// @Param id path int true "API ID"
+// @Success 200 {object} map[string]interface{} "{"message":"删除API成功"}"
+// @Failure 400 {object} map[string]interface{} "{"error":"无效的API ID"}"
+// @Failure 500 {object} map[string]interface{} "{"error":"删除API失败"}"
+// @Router /api/apis/{id} [delete]
 func DeleteApi(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.Atoi(idStr)

@@ -73,6 +73,9 @@ func InitApiRoutes(r *gin.Engine) {
 
 		// 租户相关路由
 		protected.GET("/tenant/list", api.GetTenantList)
+
+		// 动态数据管理路由
+		InitDynamicRoutes(protected)
 	}
 
 	// 需要权限验证的路由

@@ -1,0 +1,105 @@
+/* 修复Ant Design Message组件图标显示问题 */
+
+/* 确保成功消息的图标正确显示 */
+.ant-message-success .anticon {
+  color: #52c41a !important;
+}
+
+.ant-message-success .anticon-check-circle {
+  color: #52c41a !important;
+}
+
+/* 确保错误消息的图标正确显示 */
+.ant-message-error .anticon {
+  color: #ff4d4f !important;
+}
+
+.ant-message-error .anticon-close-circle {
+  color: #ff4d4f !important;
+}
+
+/* 确保警告消息的图标正确显示 */
+.ant-message-warning .anticon {
+  color: #faad14 !important;
+}
+
+.ant-message-warning .anticon-exclamation-circle {
+  color: #faad14 !important;
+}
+
+/* 确保信息消息的图标正确显示 */
+.ant-message-info .anticon {
+  color: #1890ff !important;
+}
+
+.ant-message-info .anticon-info-circle {
+  color: #1890ff !important;
+}
+
+/* 强制覆盖任何可能影响图标颜色的样式 */
+.ant-message .anticon {
+  display: inline-block;
+  font-style: normal;
+  line-height: 0;
+  text-align: center;
+  text-transform: none;
+  vertical-align: -0.125em;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* 修复深色主题下的图标颜色 */
+[data-theme="dark"] .ant-message-success .anticon {
+  color: #49aa19 !important;
+}
+
+[data-theme="dark"] .ant-message-error .anticon {
+  color: #dc4446 !important;
+}
+
+[data-theme="dark"] .ant-message-warning .anticon {
+  color: #d89614 !important;
+}
+
+[data-theme="dark"] .ant-message-info .anticon {
+  color: #177ddc !important;
+}
+
+/* 确保SVG图标正确渲染 */
+.ant-message .anticon svg {
+  display: inline-block;
+}
+
+/* 修复可能存在的图标大小问题 */
+.ant-message .anticon {
+  font-size: 16px;
+}
+
+/* 修复可能存在的图标位置问题 */
+.ant-message-notice-content {
+  display: flex;
+  align-items: center;
+}
+
+.ant-message-custom-content {
+  display: flex;
+  align-items: center;
+}
+
+.ant-message-custom-content .anticon {
+  margin-right: 8px;
+}
+
+/* 修复可能存在的动画问题 */
+.ant-message-move-up-enter,
+.ant-message-move-up-appear {
+  animation-duration: 0.3s;
+  animation-fill-mode: both;
+  animation-timing-function: ease-out;
+}
+
+.ant-message-move-up-leave {
+  animation-duration: 0.3s;
+  animation-fill-mode: both;
+  animation-timing-function: ease-in;
+}

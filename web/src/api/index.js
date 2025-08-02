@@ -14,6 +14,24 @@ api.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+    
+    // 为字段相关的请求添加缓存控制头，防止浏览器缓存
+    if (config.url && (
+      config.url.includes('/dynamicField/') || 
+      config.url.includes('/dynamicTable/') ||
+      config.url.includes('/dynamicData/')
+    )) {
+      config.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate';
+      config.headers['Pragma'] = 'no-cache';
+      config.headers['Expires'] = '0';
+      // 添加时间戳参数防止缓存
+      const timestamp = Date.now();
+      if (config.method === 'get') {
+        config.params = config.params || {};
+        config.params._t = timestamp;
+      }
+    }
+    
     return config;
   },
   (error) => {

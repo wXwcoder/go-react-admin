@@ -33,9 +33,13 @@ go.work.sum
 
 web/node_modules
 web/dist    # 前端构建输出目录
+web/build   # 前端构建输出目录
 .vercel
 server/tools
 server/sql
 .vscode
 docker/mysql_dev_data
 docker/redis_dev_data
+web/build
+server/scripts
+log

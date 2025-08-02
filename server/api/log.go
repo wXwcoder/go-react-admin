@@ -12,6 +12,22 @@ import (
 )
 
 // GetLogList 获取日志列表
+// @Summary 获取日志列表
+// @Description 获取系统日志列表，支持分页、搜索和筛选
+// @Tags 日志管理
+// @Accept json
+// @Produce json
+// @Security ApiKeyAuth
+// @Param page query int false "页码" default(1)
+// @Param pageSize query int false "每页数量" default(10) minimum(1) maximum(100)
+// @Param username query string false "用户名搜索"
+// @Param method query string false "HTTP方法"
+// @Param statusCode query int false "状态码"
+// @Param startDate query string false "开始日期" format(date)
+// @Param endDate query string false "结束日期" format(date)
+// @Success 200 {object} map[string]interface{} "{"logs":[]model.Log,"total":int,"page":int,"pageSize":int}"
+// @Failure 500 {object} map[string]interface{} "{"error":"获取日志列表失败"}"
+// @Router /api/logs [get]
 func GetLogList(c *gin.Context) {
 	var logs []model.Log
 	var total int64

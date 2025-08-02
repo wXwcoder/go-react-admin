@@ -11,6 +11,11 @@ const ApiManagement = lazy(() => import('../pages/ApiManagement'));
 const PermissionManagement = lazy(() => import('../pages/PermissionManagement'));
 const LogManagement = lazy(() => import('../pages/LogManagement'));
 
+// 动态数据管理页面
+const DynamicTableManagement = lazy(() => import('../pages/DynamicTableManagement'));
+const DynamicFieldManagement = lazy(() => import('../pages/DynamicFieldManagement'));
+const DynamicDataManagement = lazy(() => import('../pages/DynamicDataManagement'));
+
 // 加载组件包装器
 const LoadingWrapper = ({ children }) => (
   <Suspense fallback={
@@ -142,6 +147,83 @@ export const staticRoutes = [
       title: '日志管理',
       icon: 'fas fa-history',
       keepAlive: true
+    }
+  },
+  
+  // 动态数据管理路由
+  {
+    path: '/dynamic',
+    element: <Navigate to="/dynamic/tables" replace />,
+    meta: {
+      title: '动态数据管理',
+      hidden: true
+    }
+  },
+  {
+    path: '/dynamic/tables',
+    element: (
+      <PermissionWrapper permission={{ resource: 'dynamic_table', action: 'read' }}>
+        <DynamicTableManagement />
+      </PermissionWrapper>
+    ),
+    meta: {
+      title: '动态表管理',
+      icon: 'fas fa-table',
+      keepAlive: true
+    }
+  },
+  {
+    path: '/dynamic/fields/:tableId',
+    element: (
+      <PermissionWrapper permission={{ resource: 'dynamic_field', action: 'read' }}>
+        <DynamicFieldManagement />
+      </PermissionWrapper>
+    ),
+    meta: {
+      title: '字段管理',
+      icon: 'fas fa-columns',
+      keepAlive: false,
+      hidden: true
+    }
+  },
+  {
+    path: '/dynamic/data/:tableName',
+    element: (
+      <PermissionWrapper permission={{ resource: 'dynamic_data', action: 'read' }}>
+        <DynamicDataManagement />
+      </PermissionWrapper>
+    ),
+    meta: {
+      title: '数据管理',
+      icon: 'fas fa-database',
+      keepAlive: false,
+      hidden: true
+    }
+  },
+  
+  // 兼容旧路径的重定向
+  {
+    path: '/dynamic-tables',
+    element: <Navigate to="/dynamic/tables" replace />,
+    meta: {
+      title: '动态表管理',
+      hidden: true
+    }
+  },
+  {
+    path: '/dynamic-fields/:tableId',
+    element: <Navigate to="/dynamic/fields/:tableId" replace />,
+    meta: {
+      title: '字段管理',
+      hidden: true
+    }
+  },
+  {
+    path: '/dynamic-data/:tableName',
+    element: <Navigate to="/dynamic/data/:tableName" replace />,
+    meta: {
+      title: '数据管理',
+      hidden: true
     }
   },
   // 兼容旧路径的重定向
