@@ -24,7 +24,8 @@ func (api *DynamicDataApi) CreateData(c *gin.Context) {
 	err := c.ShouldBindJSON(&data)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": err.Error(),
+			"success": false,
+			"message": err.Error(),
 		})
 		return
 	}
@@ -32,12 +33,14 @@ func (api *DynamicDataApi) CreateData(c *gin.Context) {
 	data, err = dynamicDataService.CreateData(tableName, data)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
+			"success": false,
+			"message": err.Error(),
 		})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
+		"success": true,
 		"message": "创建成功",
 		"data":    data,
 	})
@@ -47,7 +50,10 @@ func (api *DynamicDataApi) CreateData(c *gin.Context) {
 func (api *DynamicDataApi) GetDynamicDataList(c *gin.Context) {
 	tableName := c.Param("tableName")
 	if tableName == "" {
-		c.JSON(400, gin.H{"error": "表名不能为空"})
+		c.JSON(400, gin.H{
+			"success": false,
+			"message": "表名不能为空",
+		})
 		return
 	}
 
@@ -66,7 +72,10 @@ func (api *DynamicDataApi) GetDynamicDataList(c *gin.Context) {
 
 	data, total, err := dynamicDataService.GetDataList(tableName, page, pageSize, filters, orderBy)
 	if err != nil {
-		c.JSON(500, gin.H{"error": err.Error()})
+		c.JSON(500, gin.H{
+			"success": false,
+			"message": err.Error(),
+		})
 		return
 	}
 
@@ -88,7 +97,8 @@ func (api *DynamicDataApi) GetDataByID(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "无效的ID",
+			"success": false,
+			"message": "无效的ID",
 		})
 		return
 	}
@@ -96,13 +106,16 @@ func (api *DynamicDataApi) GetDataByID(c *gin.Context) {
 	data, err := dynamicDataService.GetDataByID(tableName, uint(id))
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
-			"error": err.Error(),
+			"success": false,
+			"message": err.Error(),
 		})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"data": data,
+		"success": true,
+		"message": "获取成功",
+		"data":    data,
 	})
 }
 
@@ -112,7 +125,8 @@ func (api *DynamicDataApi) UpdateData(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "无效的ID",
+			"success": false,
+			"message": "无效的ID",
 		})
 		return
 	}
@@ -120,7 +134,8 @@ func (api *DynamicDataApi) UpdateData(c *gin.Context) {
 	var data map[string]interface{}
 	if err := c.ShouldBindJSON(&data); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": err.Error(),
+			"success": false,
+			"message": err.Error(),
 		})
 		return
 	}
@@ -128,12 +143,14 @@ func (api *DynamicDataApi) UpdateData(c *gin.Context) {
 	data, err = dynamicDataService.UpdateData(tableName, uint(id), data)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
+			"success": false,
+			"message": err.Error(),
 		})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
+		"success": true,
 		"message": "更新成功",
 		"data":    data,
 	})
@@ -145,19 +162,22 @@ func (api *DynamicDataApi) DeleteData(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "无效的ID",
+			"success": false,
+			"message": "无效的ID",
 		})
 		return
 	}
 
 	if err := dynamicDataService.DeleteData(tableName, uint(id)); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
+			"success": false,
+			"message": err.Error(),
 		})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
+		"success": true,
 		"message": "删除成功",
 	})
 }
@@ -171,19 +191,22 @@ func (api *DynamicDataApi) BatchDeleteData(c *gin.Context) {
 	}
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": err.Error(),
+			"success": false,
+			"message": err.Error(),
 		})
 		return
 	}
 
 	if err := dynamicDataService.BatchDeleteData(tableName, req.IDs); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
+			"success": false,
+			"message": err.Error(),
 		})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
+		"success": true,
 		"message": "批量删除成功",
 	})
 }
@@ -192,17 +215,27 @@ func (api *DynamicDataApi) BatchDeleteData(c *gin.Context) {
 func (api *DynamicDataApi) GetDynamicDataStatistics(c *gin.Context) {
 	tableName := c.Param("tableName")
 	if tableName == "" {
-		c.JSON(400, gin.H{"error": "表名不能为空"})
+		c.JSON(400, gin.H{
+			"success": false,
+			"message": "表名不能为空",
+		})
 		return
 	}
 
 	stats, err := dynamicDataService.GetDataStatistics(tableName)
 	if err != nil {
-		c.JSON(500, gin.H{"error": err.Error()})
+		c.JSON(500, gin.H{
+			"success": false,
+			"message": err.Error(),
+		})
 		return
 	}
 
-	c.JSON(200, gin.H{"data": stats})
+	c.JSON(200, gin.H{
+		"success": true,
+		"message": "获取成功",
+		"data":    stats,
+	})
 }
 
 // GetDataStatistics 获取数据统计
@@ -212,13 +245,16 @@ func (api *DynamicDataApi) GetDataStatistics(c *gin.Context) {
 	statistics, err := dynamicDataService.GetDataStatistics(tableName)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
+			"success": false,
+			"message": err.Error(),
 		})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"data": statistics,
+		"success": true,
+		"message": "获取成功",
+		"data":    statistics,
 	})
 }
 
@@ -227,19 +263,22 @@ func (api *DynamicDataApi) CreateView(c *gin.Context) {
 	var view model.DynamicView
 	if err := c.ShouldBindJSON(&view); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": err.Error(),
+			"success": false,
+			"message": err.Error(),
 		})
 		return
 	}
 
 	if err := dynamicDataService.CreateView(&view); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
+			"success": false,
+			"message": err.Error(),
 		})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
+		"success": true,
 		"message": "创建成功",
 		"data":    view,
 	})
@@ -250,7 +289,8 @@ func (api *DynamicDataApi) GetViewList(c *gin.Context) {
 	tableID, err := strconv.ParseUint(c.Param("tableId"), 10, 32)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "无效的表ID",
+			"success": false,
+			"message": "无效的表ID",
 		})
 		return
 	}
@@ -258,13 +298,16 @@ func (api *DynamicDataApi) GetViewList(c *gin.Context) {
 	views, err := dynamicDataService.GetViewList(uint(tableID))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
+			"success": false,
+			"message": err.Error(),
 		})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"data": views,
+		"success": true,
+		"message": "获取成功",
+		"data":    views,
 	})
 }
 
@@ -273,7 +316,8 @@ func (api *DynamicDataApi) GetViewByID(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "无效的ID",
+			"success": false,
+			"message": "无效的ID",
 		})
 		return
 	}
@@ -281,13 +325,16 @@ func (api *DynamicDataApi) GetViewByID(c *gin.Context) {
 	view, err := dynamicDataService.GetViewByID(uint(id))
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
-			"error": err.Error(),
+			"success": false,
+			"message": err.Error(),
 		})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"data": view,
+		"success": true,
+		"message": "获取成功",
+		"data":    view,
 	})
 }
 
@@ -296,7 +343,8 @@ func (api *DynamicDataApi) UpdateView(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "无效的ID",
+			"success": false,
+			"message": "无效的ID",
 		})
 		return
 	}
@@ -304,7 +352,8 @@ func (api *DynamicDataApi) UpdateView(c *gin.Context) {
 	var view model.DynamicView
 	if err := c.ShouldBindJSON(&view); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": err.Error(),
+			"success": false,
+			"message": err.Error(),
 		})
 		return
 	}
@@ -312,12 +361,14 @@ func (api *DynamicDataApi) UpdateView(c *gin.Context) {
 	view.ID = uint(id)
 	if err := dynamicDataService.UpdateView(&view); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
+			"success": false,
+			"message": err.Error(),
 		})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
+		"success": true,
 		"message": "更新成功",
 		"data":    view,
 	})
@@ -328,19 +379,22 @@ func (api *DynamicDataApi) DeleteView(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "无效的ID",
+			"success": false,
+			"message": "无效的ID",
 		})
 		return
 	}
 
 	if err := dynamicDataService.DeleteView(uint(id)); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
+			"success": false,
+			"message": err.Error(),
 		})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
+		"success": true,
 		"message": "删除成功",
 	})
 }
@@ -350,7 +404,8 @@ func (api *DynamicDataApi) ApplyView(c *gin.Context) {
 	viewID, err := strconv.ParseUint(c.Param("viewId"), 10, 32)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "无效的视图ID",
+			"success": false,
+			"message": "无效的视图ID",
 		})
 		return
 	}
@@ -358,7 +413,8 @@ func (api *DynamicDataApi) ApplyView(c *gin.Context) {
 	var params map[string]interface{}
 	if err := c.ShouldBindJSON(&params); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": err.Error(),
+			"success": false,
+			"message": err.Error(),
 		})
 		return
 	}
@@ -366,12 +422,15 @@ func (api *DynamicDataApi) ApplyView(c *gin.Context) {
 	result, err := dynamicDataService.ApplyView(uint(viewID), params)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
+			"success": false,
+			"message": err.Error(),
 		})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"data": result,
+		"success": true,
+		"message": "应用成功",
+		"data":    result,
 	})
 }

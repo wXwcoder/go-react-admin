@@ -356,20 +356,20 @@ func fixBasicPermissions() {
 
 func healthCheck() {
 	fmt.Println("执行系统健康检查...")
-	
+
 	// 检查数据库连接
 	db, err := global.DB.DB()
 	if err != nil {
 		fmt.Printf("数据库连接失败: %v\n", err)
 		return
 	}
-	
+
 	if err := db.Ping(); err != nil {
 		fmt.Printf("数据库连接失败: %v\n", err)
 	} else {
 		fmt.Println("✓ 数据库连接正常")
 	}
-	
+
 	// 检查Redis连接
 	if global.RedisClient != nil {
 		ctx := context.Background()
@@ -379,68 +379,68 @@ func healthCheck() {
 			fmt.Println("✓ Redis连接正常")
 		}
 	}
-	
+
 	// 检查表统计
 	var tableCount int64
 	global.DB.Model(&model.DynamicTable{}).Count(&tableCount)
 	fmt.Printf("✓ 动态表数量: %d\n", tableCount)
-	
+
 	var fieldCount int64
 	global.DB.Model(&model.DynamicField{}).Count(&fieldCount)
 	fmt.Printf("✓ 动态字段数量: %d\n", fieldCount)
-	
+
 	var userCount int64
 	global.DB.Model(&model.User{}).Count(&userCount)
 	fmt.Printf("✓ 用户数量: %d\n", userCount)
-	
+
 	fmt.Println("健康检查完成")
 }
 
 func showSystemInfo() {
 	fmt.Println("系统配置信息:")
-	
+
 	// 数据库信息
 	var tableCount int64
 	global.DB.Model(&model.DynamicTable{}).Count(&tableCount)
-	
+
 	var fieldCount int64
 	global.DB.Model(&model.DynamicField{}).Count(&fieldCount)
-	
+
 	var userCount int64
 	global.DB.Model(&model.User{}).Count(&userCount)
-	
+
 	var roleCount int64
 	global.DB.Model(&model.Role{}).Count(&roleCount)
-	
+
 	fmt.Printf("数据库统计:\n")
 	fmt.Printf("  动态表: %d\n", tableCount)
 	fmt.Printf("  动态字段: %d\n", fieldCount)
 	fmt.Printf("  用户: %d\n", userCount)
 	fmt.Printf("  角色: %d\n", roleCount)
-	
+
 	// 版本信息
 	fmt.Printf("\n应用信息:\n")
 	fmt.Printf("  应用名称: Go-React-Admin\n")
 	fmt.Printf("  版本: v1.0.0\n")
 	fmt.Printf("  构建时间: %s\n", time.Now().Format("2006-01-02 15:04:05"))
-	
+
 	fmt.Println("系统信息获取完成")
 }
 
 func cleanLogs() {
 	fmt.Println("清理系统日志...")
-	
+
 	// 清理30天前的日志
 	cutoffDate := time.Now().AddDate(0, 0, -30)
-	
+
 	result := global.DB.Where("created_at < ?", cutoffDate).Delete(&model.Log{})
 	if result.Error != nil {
 		fmt.Printf("清理日志失败: %v\n", result.Error)
 		return
 	}
-	
+
 	fmt.Printf("已清理 %d 条过期日志\n", result.RowsAffected)
-	
+
 	// 清理日志文件
 	logDir := "./log"
 	if _, err := os.Stat(logDir); err == nil {
@@ -451,21 +451,21 @@ func cleanLogs() {
 			}
 		}
 	}
-	
+
 	fmt.Println("日志清理完成")
 }
 
 func backupDatabase() {
 	fmt.Println("备份数据库...")
-	
+
 	backupFile := fmt.Sprintf("backup_%s.sql", time.Now().Format("20060102_150405"))
-	
+
 	// 获取数据库中的表
 	var tables []string
 	global.DB.Raw("SHOW TABLES").Scan(&tables)
-	
+
 	fmt.Printf("发现 %d 个表\n", len(tables))
-	
+
 	// 创建备份文件
 	file, err := os.Create(backupFile)
 	if err != nil {
@@ -473,18 +473,18 @@ func backupDatabase() {
 		return
 	}
 	defer file.Close()
-	
+
 	// 写入备份信息
 	fmt.Fprintf(file, "-- Go-React-Admin Database Backup\n")
 	fmt.Fprintf(file, "-- Generated at: %s\n\n", time.Now().Format("2006-01-02 15:04:05"))
-	
+
 	// 这里可以添加实际的SQL导出逻辑
 	// 由于需要复杂的SQL导出，这里只做简单模拟
 	fmt.Fprintf(file, "-- 表结构备份 (模拟)\n")
 	for _, table := range tables {
 		fmt.Fprintf(file, "-- Table: %s\n", table)
 	}
-	
+
 	fmt.Printf("数据库备份已保存到: %s\n", backupFile)
 	fmt.Println("备份完成")
 }
@@ -570,7 +570,7 @@ func listDynamicFields() {
 			status = "禁用"
 		}
 		fmt.Printf("%d\t%s\t\t%s\t\t%s\t\t%s\t\t%s\t%d\n",
-			field.ID, field.Table.TableName, field.FieldName, field.DisplayName, field.FieldType, status, field.SortOrder)
+			field.ID, field.TableName(), field.FieldName, field.DisplayName, field.FieldType, status, field.SortOrder)
 	}
 	fmt.Printf("\n总计: %d 个动态字段\n", len(fields))
 }
@@ -599,7 +599,7 @@ func showFieldDetails() {
 
 	fmt.Printf("\n字段详情:\n")
 	fmt.Printf("ID: %d\n", field.ID)
-	fmt.Printf("所属表: %s (ID: %d)\n", field.Table.TableName, field.TableID)
+	fmt.Printf("所属表: %s (ID: %d)\n", field.TableName(), field.TableID)
 	fmt.Printf("字段名: %s\n", field.FieldName)
 	fmt.Printf("显示名称: %s\n", field.DisplayName)
 	fmt.Printf("字段类型: %s\n", field.FieldType)

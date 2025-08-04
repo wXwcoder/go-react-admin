@@ -98,7 +98,7 @@ const Sidebar = () => {
     <aside className={`sidebar ${sidebarCollapsed ? 'collapsed' : ''}`}>
       {/* Logo区域 */}
       <div className="sidebar-header">
-        <div className="logo">
+        <div className="logo" onClick={() => navigate('/')} style={{ cursor: 'pointer' }}>
           {!sidebarCollapsed && <h2>Go-React Admin</h2>}
           {sidebarCollapsed && <h2>GRA</h2>}
         </div>

@@ -65,7 +65,7 @@ func (dta *DynamicTableApi) GetTableList(c *gin.Context) {
 	c.Header("Cache-Control", "no-cache, no-store, must-revalidate")
 	c.Header("Pragma", "no-cache")
 	c.Header("Expires", "0")
-	
+
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
 	pageSize, _ := strconv.Atoi(c.DefaultQuery("pageSize", "10"))
 	keyword := c.Query("keyword")
@@ -105,7 +105,7 @@ func (dta *DynamicTableApi) GetTableByID(c *gin.Context) {
 	c.Header("Cache-Control", "no-cache, no-store, must-revalidate")
 	c.Header("Pragma", "no-cache")
 	c.Header("Expires", "0")
-	
+
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -144,7 +144,8 @@ func (dta *DynamicTableApi) UpdateTable(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "无效的ID",
+			"success": false,
+			"message": "无效的ID",
 		})
 		return
 	}
@@ -152,7 +153,8 @@ func (dta *DynamicTableApi) UpdateTable(c *gin.Context) {
 	var table model.DynamicTable
 	if err := c.ShouldBindJSON(&table); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": err.Error(),
+			"success": false,
+			"message": err.Error(),
 		})
 		return
 	}
@@ -160,12 +162,14 @@ func (dta *DynamicTableApi) UpdateTable(c *gin.Context) {
 	table.ID = uint(id)
 	if err := dynamicTableService.UpdateTable(&table); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
+			"success": false,
+			"message": err.Error(),
 		})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
+		"success": true,
 		"message": "更新成功",
 		"data":    table,
 	})
@@ -184,19 +188,22 @@ func (dta *DynamicTableApi) DeleteTable(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "无效的ID",
+			"success": false,
+			"message": "无效的ID",
 		})
 		return
 	}
 
 	if err := dynamicTableService.DeleteTable(uint(id)); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
+			"success": false,
+			"message": err.Error(),
 		})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
+		"success": true,
 		"message": "删除成功",
 	})
 }
@@ -214,19 +221,22 @@ func (dta *DynamicTableApi) ToggleTableStatus(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "无效的ID",
+			"success": false,
+			"message": "无效的ID",
 		})
 		return
 	}
 
 	if err := dynamicTableService.ToggleTableStatus(uint(id)); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
+			"success": false,
+			"message": err.Error(),
 		})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
+		"success": true,
 		"message": "状态切换成功",
 	})
 }

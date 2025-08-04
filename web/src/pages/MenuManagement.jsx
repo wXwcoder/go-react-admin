@@ -213,16 +213,9 @@ const MenuManagement = () => {
                 }}
               >
                 <option value="">请选择图标</option>
-                <option value="fas fa-tachometer-alt">仪表盘</option>
-                <option value="fas fa-user">用户</option>
-                <option value="fas fa-cog">设置</option>
-                <option value="fas fa-bars">菜单</option>
-                <option value="fas fa-users">角色</option>
-                <option value="fas fa-lock">权限</option>
-                <option value="fas fa-building">租户</option>
-                <option value="fas fa-plug">API</option>
-                <option value="fas fa-file-alt">日志</option>
-                <option value="fas fa-home">首页</option>
+                {MENU_ICONS.map(item => (
+                  <option key={item.key} value={item.icon}>{item.label}</option>
+                ))}
               </select>
               <div id="icon-preview" style={{ 
                 width: '40px', 

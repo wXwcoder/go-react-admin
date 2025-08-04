@@ -21,11 +21,31 @@ const Login = () => {
       });
 
       const data = await response.json();
-      
+      console.log(data);
       if (response.ok) {
         // 保存token和userId到localStorage
         localStorage.setItem('token', data.token);
         localStorage.setItem('userId', data.userId);
+        
+        // 获取并保存用户信息
+        try {
+          const userResponse = await fetch(`/api/v1/user/info`, {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${data.token}`,
+            },
+          });
+          
+          const userData = await userResponse.json();
+          if (userData.success && userData.user) {
+            localStorage.setItem('user', JSON.stringify(userData.user));
+            localStorage.setItem('userInfo', JSON.stringify(userData.user));
+          }
+        } catch (userError) {
+          console.error('获取用户信息失败:', userError);
+        }
+        
         // 跳转到主页
         navigate('/dashboard');
       } else {

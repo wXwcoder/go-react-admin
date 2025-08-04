@@ -1,29 +1,67 @@
-import React, { useState, useEffect } from 'react';
-import { Outlet, useNavigate, useLocation } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { Outlet } from 'react-router-dom';
 import { MenuProvider } from '../store/MenuContext';
-import ThemeToggle from './ThemeToggle';
+import Header from './Header';
 import Sidebar from './Sidebar';
 import TabBar from './TabBar';
+import useWatermark from '../hooks/useWatermark';
 import '../assets/styles/Layout.css';
 
 const Layout = () => {
-  const [user, setUser] = useState(null);
-  const navigate = useNavigate();
-  const location = useLocation();
+  const [userInfo, setUserInfo] = useState(null);
 
   useEffect(() => {
-    // 获取用户信息
-    const userInfo = localStorage.getItem('userInfo');
-    if (userInfo) {
-      setUser(JSON.parse(userInfo));
+    // 从localStorage获取用户信息
+    const userStr = localStorage.getItem('user');
+    if (userStr) {
+      try {
+        const user = JSON.parse(userStr);
+        setUserInfo(user);
+      } catch (error) {
+        console.error('解析用户信息失败:', error);
+      }
     }
   }, []);
 
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('userInfo');
-    navigate('/login');
-  };
+  // 使用水印hook
+  const [watermarkSettings, setWatermarkSettings] = useState(() => {
+    const saved = localStorage.getItem('watermarkSettings');
+    return saved ? JSON.parse(saved) : {
+      enabled: true,
+      text: '内部资料 禁止外传',
+      opacity: 0.08,
+      fontSize: 14,
+      color: '#000000',
+      rotate: -30,
+      gap: 150,
+      userInfo: true
+    };
+  });
+
+  useEffect(() => {
+    const handleWatermarkSettingsChange = (event) => {
+      setWatermarkSettings(event.detail);
+    };
+
+    window.addEventListener('watermarkSettingsChanged', handleWatermarkSettingsChange);
+    return () => {
+      window.removeEventListener('watermarkSettingsChanged', handleWatermarkSettingsChange);
+    };
+  }, []);
+
+  const watermarkText = watermarkSettings.userInfo && userInfo 
+    ? (userInfo.realName ? `${userInfo.username || '用户'} - ${userInfo.realName}` : userInfo.username || '用户')
+    : watermarkSettings.text || '内部资料 禁止外传';
+
+  useWatermark({
+    text: watermarkText,
+    opacity: watermarkSettings.opacity,
+    fontSize: watermarkSettings.fontSize,
+    color: watermarkSettings.color,
+    rotate: watermarkSettings.rotate,
+    gap: watermarkSettings.gap,
+    enabled: watermarkSettings.enabled
+  });
 
   return (
     <MenuProvider>
@@ -34,24 +72,7 @@ const Layout = () => {
         {/* 主内容区域 */}
         <div className="layout-main">
           {/* 顶部导航栏 */}
-          <header className="layout-header">
-            <div className="header-left">
-              <h1>Go React Admin</h1>
-            </div>
-            <div className="header-right">
-              <ThemeToggle />
-              <div className="user-info">
-                <span className="user-name">
-                  <i className="fas fa-user"></i>
-                  {user?.username || '管理员'}
-                </span>
-                <button className="logout-btn" onClick={handleLogout}>
-                  <i className="fas fa-sign-out-alt"></i>
-                  退出
-                </button>
-              </div>
-            </div>
-          </header>
+          <Header />
 
           {/* Tab页签栏 */}
           <TabBar />

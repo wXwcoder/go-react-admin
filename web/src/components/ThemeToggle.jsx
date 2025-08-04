@@ -6,7 +6,7 @@ const ThemeToggle = ({ className = '' }) => {
   const { currentTheme, toggleTheme } = useTheme();
 
   return (
-    <div className={`theme-toggle ${className}`}>
+    <div className={`theme-toggle ${className}`} style={{ whiteSpace: 'nowrap', minWidth: 'max-content' }}>
       <button
         className="theme-toggle-btn"
         onClick={toggleTheme}

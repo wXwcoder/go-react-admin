@@ -25,13 +25,16 @@ func GetRoleList(c *gin.Context) {
 	// 从数据库中获取所有角色
 	if err := global.DB.Find(&roles).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "获取角色列表失败",
+			"success": false,
+			"message": "获取角色列表失败",
 		})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"roles": roles,
+		"success": true,
+		"message": "获取角色列表成功",
+		"roles":   roles,
 	})
 }
 
@@ -52,7 +55,8 @@ func CreateRole(c *gin.Context) {
 	// 绑定JSON到role
 	if err := c.ShouldBindJSON(&role); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "请求参数错误",
+			"success": false,
+			"message": "请求参数错误",
 		})
 		return
 	}
@@ -60,12 +64,14 @@ func CreateRole(c *gin.Context) {
 	// 创建角色
 	if err := global.DB.Create(&role).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "创建角色失败",
+			"success": false,
+			"message": "创建角色失败",
 		})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
+		"success": true,
 		"message": "角色创建成功",
 		"role":    role,
 	})
@@ -90,7 +96,8 @@ func UpdateRole(c *gin.Context) {
 	// 绑定JSON到role
 	if err := c.ShouldBindJSON(&role); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "请求参数错误",
+			"success": false,
+			"message": "请求参数错误",
 		})
 		return
 	}
@@ -98,12 +105,14 @@ func UpdateRole(c *gin.Context) {
 	// 更新角色
 	if err := global.DB.Model(&model.Role{}).Where("id = ?", id).Updates(role).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "更新角色失败",
+			"success": false,
+			"message": "更新角色失败",
 		})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
+		"success": true,
 		"message": "角色更新成功",
 	})
 }
@@ -125,7 +134,8 @@ func DeleteRole(c *gin.Context) {
 	roleID, err := strconv.Atoi(id)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "无效的角色ID",
+			"success": false,
+			"message": "无效的角色ID",
 		})
 		return
 	}
@@ -133,12 +143,14 @@ func DeleteRole(c *gin.Context) {
 	// 删除角色
 	if err := global.DB.Delete(&model.Role{}, roleID).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "删除角色失败",
+			"success": false,
+			"message": "删除角色失败",
 		})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
+		"success": true,
 		"message": "角色删除成功",
 	})
 }

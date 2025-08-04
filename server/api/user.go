@@ -29,7 +29,8 @@ func Login(c *gin.Context) {
 	// 绑定JSON
 	if err := c.ShouldBindJSON(&user); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": err.Error(),
+			"success": false,
+			"message": err.Error(),
 		})
 		return
 	}
@@ -38,7 +39,8 @@ func Login(c *gin.Context) {
 	var dbUser model.User
 	if err := global.DB.Where("username = ? AND password = ?", user.Username, user.Password).First(&dbUser).Error; err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{
-			"error": "用户名或密码错误",
+			"success": false,
+			"message": "用户名或密码错误",
 		})
 		return
 	}
@@ -47,12 +49,14 @@ func Login(c *gin.Context) {
 	token, err := utils.GenerateToken(dbUser.ID, dbUser.Username, dbUser.TenantID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "生成Token失败",
+			"success": false,
+			"message": "生成Token失败",
 		})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
+		"success": true,
 		"message": "登录成功",
 		"token":   token,
 		"userId":  dbUser.ID,
@@ -75,7 +79,8 @@ func Register(c *gin.Context) {
 	// 绑定JSON
 	if err := c.ShouldBindJSON(&user); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": err.Error(),
+			"success": false,
+			"message": err.Error(),
 		})
 		return
 	}
@@ -83,12 +88,14 @@ func Register(c *gin.Context) {
 	// 在数据库中创建用户
 	if err := global.DB.Create(&user).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "注册失败",
+			"success": false,
+			"message": "注册失败",
 		})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
+		"success": true,
 		"message": "注册成功",
 	})
 }
@@ -109,7 +116,8 @@ func GetUserInfo(c *gin.Context) {
 	userID, exists := c.Get("user_id")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{
-			"error": "无法获取用户信息",
+			"success": false,
+			"message": "无法获取用户信息",
 		})
 		return
 	}
@@ -118,13 +126,16 @@ func GetUserInfo(c *gin.Context) {
 	var user model.User
 	if err := global.DB.First(&user, userID).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
-			"error": "用户不存在",
+			"success": false,
+			"message": "用户不存在",
 		})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"user": user,
+		"success": true,
+		"message": "获取用户信息成功",
+		"user":    user,
 	})
 }
 
@@ -139,6 +150,7 @@ func GetUserInfo(c *gin.Context) {
 // @Router /api/logout [post]
 func Logout(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
+		"success": true,
 		"message": "登出成功",
 	})
 }
@@ -158,13 +170,16 @@ func GetUserList(c *gin.Context) {
 	// 从数据库中获取所有用户
 	if err := global.DB.Find(&users).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "获取用户列表失败",
+			"success": false,
+			"message": "获取用户列表失败",
 		})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"users": users,
+		"success": true,
+		"message": "获取用户列表成功",
+		"users":   users,
 	})
 }
 
@@ -186,7 +201,8 @@ func CreateUser(c *gin.Context) {
 	if err := c.ShouldBindJSON(&user); err != nil {
 		fmt.Printf("绑定JSON错误: %v\n", err)
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "请求参数错误",
+			"success": false,
+			"message": "请求参数错误",
 		})
 		return
 	}
@@ -197,13 +213,15 @@ func CreateUser(c *gin.Context) {
 	if err := global.DB.Create(&user).Error; err != nil {
 		fmt.Printf("创建用户错误: %v\n", err)
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "创建用户失败",
+			"success": false,
+			"message": "创建用户失败",
 		})
 		return
 	}
 
 	fmt.Printf("用户创建成功: %+v\n", user)
 	c.JSON(http.StatusOK, gin.H{
+		"success": true,
 		"message": "用户创建成功",
 		"user":    user,
 	})
@@ -228,7 +246,8 @@ func UpdateUser(c *gin.Context) {
 	// 绑定JSON到user
 	if err := c.ShouldBindJSON(&user); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "请求参数错误",
+			"success": false,
+			"message": "请求参数错误",
 		})
 		return
 	}
@@ -236,12 +255,14 @@ func UpdateUser(c *gin.Context) {
 	// 更新用户
 	if err := global.DB.Model(&model.User{}).Where("id = ?", id).Updates(user).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "更新用户失败",
+			"success": false,
+			"message": "更新用户失败",
 		})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
+		"success": true,
 		"message": "用户更新成功",
 	})
 }
@@ -277,6 +298,7 @@ func DeleteUser(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
+		"success": true,
 		"message": "用户删除成功",
 	})
 }

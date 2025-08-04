@@ -175,6 +175,27 @@ func (dts *DynamicTableService) UpdateTable(table *model.DynamicTable) error {
 		return err
 	}
 
+	// 检查名称是否已存在（排除当前记录）
+	var count int64
+	if err := global.DB.Model(&model.DynamicTable{}).
+		Where("name = ? AND id != ?", table.Name, table.ID).
+		Count(&count).Error; err != nil {
+		return err
+	}
+	if count > 0 {
+		return errors.New("表名称已存在")
+	}
+
+	// 检查表名是否已存在（排除当前记录）
+	if err := global.DB.Model(&model.DynamicTable{}).
+		Where("table_name = ? AND id != ?", table.TableName, table.ID).
+		Count(&count).Error; err != nil {
+		return err
+	}
+	if count > 0 {
+		return errors.New("表名已存在")
+	}
+
 	// 开启事务
 	tx := global.DB.Begin()
 	defer func() {
@@ -285,6 +306,27 @@ func (dts *DynamicTableService) UpdateDynamicTable(table *model.DynamicTable) (*
 		return nil, err
 	}
 
+	// 检查名称是否已存在（排除当前记录）
+	var count int64
+	if err := global.DB.Model(&model.DynamicTable{}).
+		Where("name = ? AND id != ?", table.Name, table.ID).
+		Count(&count).Error; err != nil {
+		return nil, err
+	}
+	if count > 0 {
+		return nil, errors.New("表名称已存在")
+	}
+
+	// 检查表名是否已存在（排除当前记录）
+	if err := global.DB.Model(&model.DynamicTable{}).
+		Where("table_name = ? AND id != ?", table.TableName, table.ID).
+		Count(&count).Error; err != nil {
+		return nil, err
+	}
+	if count > 0 {
+		return nil, errors.New("表名已存在")
+	}
+
 	// 开启事务
 	tx := global.DB.Begin()
 	defer func() {
@@ -320,7 +362,7 @@ func (dts *DynamicTableService) DeleteTable(id uint) error {
 	// 获取表信息
 	table, err := dts.GetTableByID(id)
 	if err != nil {
-		return err
+		return fmt.Errorf("获取表信息失败: %v", err)
 	}
 
 	// 开启事务
@@ -328,40 +370,63 @@ func (dts *DynamicTableService) DeleteTable(id uint) error {
 	defer func() {
 		if r := recover(); r != nil {
 			tx.Rollback()
+			fmt.Printf("删除表事务回滚: %v\n", r)
 		}
 	}()
 
-	// 删除物理表
-	if err := dts.dropPhysicalTable(tx, table.TableName); err != nil {
-		tx.Rollback()
-		return err
-	}
+	// 记录开始删除
+	fmt.Printf("开始删除表: %s (ID: %d)\n", table.TableName, id)
 
-	// 删除表记录
-	if err := tx.Delete(&model.DynamicTable{}, id).Error; err != nil {
-		tx.Rollback()
-		return err
-	}
-
-	// 删除相关字段记录
-	if err := tx.Where("table_id = ?", id).Delete(&model.DynamicField{}).Error; err != nil {
-		tx.Rollback()
-		return err
-	}
-
-	// 删除相关权限记录
-	if err := tx.Where("table_id = ?", id).Delete(&model.TablePermission{}).Error; err != nil {
-		tx.Rollback()
-		return err
-	}
-
-	// 删除相关视图记录
+	// 先删除相关记录（从子表开始删除，避免外键约束问题）
+	
+	// 1. 删除相关视图记录
 	if err := tx.Where("table_id = ?", id).Delete(&model.DynamicView{}).Error; err != nil {
 		tx.Rollback()
-		return err
+		fmt.Printf("删除视图记录失败: %v\n", err)
+		return fmt.Errorf("删除视图记录失败: %v", err)
+	}
+	fmt.Printf("已删除表 %d 的相关视图记录\n", id)
+
+	// 2. 删除相关权限记录
+	if err := tx.Where("table_id = ?", id).Delete(&model.TablePermission{}).Error; err != nil {
+		tx.Rollback()
+		fmt.Printf("删除权限记录失败: %v\n", err)
+		return fmt.Errorf("删除权限记录失败: %v", err)
+	}
+	fmt.Printf("已删除表 %d 的相关权限记录\n", id)
+
+	// 3. 删除相关字段记录
+	if err := tx.Where("table_id = ?", id).Delete(&model.DynamicField{}).Error; err != nil {
+		tx.Rollback()
+		fmt.Printf("删除字段记录失败: %v\n", err)
+		return fmt.Errorf("删除字段记录失败: %v", err)
+	}
+	fmt.Printf("已删除表 %d 的相关字段记录\n", id)
+
+	// 4. 删除表记录
+	if err := tx.Delete(&model.DynamicTable{}, id).Error; err != nil {
+		tx.Rollback()
+		fmt.Printf("删除表记录失败: %v\n", err)
+		return fmt.Errorf("删除表记录失败: %v", err)
+	}
+	fmt.Printf("已删除表记录: %d\n", id)
+
+	// 5. 最后删除物理表
+	if err := dts.dropPhysicalTable(tx, table.TableName); err != nil {
+		tx.Rollback()
+		fmt.Printf("删除物理表失败: %v\n", err)
+		return fmt.Errorf("删除物理表失败: %v", err)
+	}
+	fmt.Printf("已删除物理表: %s\n", table.TableName)
+
+	// 提交事务
+	if err := tx.Commit().Error; err != nil {
+		fmt.Printf("提交事务失败: %v\n", err)
+		return fmt.Errorf("提交事务失败: %v", err)
 	}
 
-	return tx.Commit().Error
+	fmt.Printf("表 %s (ID: %d) 删除成功\n", table.TableName, id)
+	return nil
 }
 
 // ToggleTableStatus 切换表状态

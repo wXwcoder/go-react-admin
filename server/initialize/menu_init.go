@@ -158,6 +158,20 @@ func InitMenuData() {
 			Type:     "menu",
 			Status:   1,
 		},
+		// 关于我们
+		{
+			ID:       11,
+			Name:     "about",
+			Path:     "/about",
+			Component: "About",
+			Icon:     "fas fa-info-circle",
+			Title:    "关于我们",
+			ParentID: 0,
+			Sort:     4,
+			Level:    1,
+			Type:     "menu",
+			Status:   1,
+		},
 	}
 
 	// 批量创建菜单

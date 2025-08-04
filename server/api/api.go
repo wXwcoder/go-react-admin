@@ -25,13 +25,16 @@ func GetApiList(c *gin.Context) {
 	// 从数据库中获取所有API
 	if err := global.DB.Find(&apis).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "获取API列表失败",
+			"success": false,
+			"message": "获取API列表失败",
 		})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"apis": apis,
+		"success": true,
+		"message": "获取API列表成功",
+		"apis":    apis,
 	})
 }
 
@@ -51,7 +54,8 @@ func CreateApi(c *gin.Context) {
 	var api model.Api
 	if err := c.ShouldBindJSON(&api); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "请求参数错误",
+			"success": false,
+			"message": "请求参数错误",
 		})
 		return
 	}
@@ -59,12 +63,14 @@ func CreateApi(c *gin.Context) {
 	// 保存到数据库
 	if err := global.DB.Create(&api).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "创建API失败",
+			"success": false,
+			"message": "创建API失败",
 		})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
+		"success": true,
 		"message": "创建API成功",
 		"api":     api,
 	})
@@ -88,7 +94,8 @@ func UpdateApi(c *gin.Context) {
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "无效的API ID",
+			"success": false,
+			"message": "无效的API ID",
 		})
 		return
 	}
@@ -96,7 +103,8 @@ func UpdateApi(c *gin.Context) {
 	var api model.Api
 	if err := c.ShouldBindJSON(&api); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "请求参数错误",
+			"success": false,
+			"message": "请求参数错误",
 		})
 		return
 	}
@@ -104,12 +112,14 @@ func UpdateApi(c *gin.Context) {
 	// 更新数据库中的API
 	if err := global.DB.Model(&model.Api{}).Where("id = ?", id).Updates(api).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "更新API失败",
+			"success": false,
+			"message": "更新API失败",
 		})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
+		"success": true,
 		"message": "更新API成功",
 	})
 }
@@ -131,7 +141,8 @@ func DeleteApi(c *gin.Context) {
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "无效的API ID",
+			"success": false,
+			"message": "无效的API ID",
 		})
 		return
 	}
@@ -139,12 +150,14 @@ func DeleteApi(c *gin.Context) {
 	// 从数据库中删除API
 	if err := global.DB.Delete(&model.Api{}, id).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "删除API失败",
+			"success": false,
+			"message": "删除API失败",
 		})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
+		"success": true,
 		"message": "删除API成功",
 	})
 }

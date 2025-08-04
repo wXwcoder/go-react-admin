@@ -22,19 +22,22 @@ func (api *DynamicFieldApi) CreateField(c *gin.Context) {
 	var field model.DynamicField
 	if err := c.ShouldBindJSON(&field); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": err.Error(),
+			"success": false,
+			"message": err.Error(),
 		})
 		return
 	}
 
 	if err := dynamicFieldService.CreateField(&field); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
+			"success": false,
+			"message": err.Error(),
 		})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
+		"success": true,
 		"message": "创建成功",
 		"data":    field,
 	})
@@ -77,7 +80,8 @@ func (api *DynamicFieldApi) GetFieldByID(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "无效的ID",
+			"success": false,
+			"message": "无效的ID",
 		})
 		return
 	}
@@ -85,13 +89,16 @@ func (api *DynamicFieldApi) GetFieldByID(c *gin.Context) {
 	field, err := dynamicFieldService.GetFieldByID(uint(id))
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
-			"error": err.Error(),
+			"success": false,
+			"message": err.Error(),
 		})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"data": field,
+		"success": true,
+		"message": "获取成功",
+		"data":    field,
 	})
 }
 
@@ -100,7 +107,8 @@ func (api *DynamicFieldApi) UpdateField(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "无效的ID",
+			"success": false,
+			"message": "无效的ID",
 		})
 		return
 	}
@@ -108,7 +116,8 @@ func (api *DynamicFieldApi) UpdateField(c *gin.Context) {
 	var field model.DynamicField
 	if err := c.ShouldBindJSON(&field); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": err.Error(),
+			"success": false,
+			"message": err.Error(),
 		})
 		return
 	}
@@ -116,12 +125,14 @@ func (api *DynamicFieldApi) UpdateField(c *gin.Context) {
 	field.ID = uint(id)
 	if err := dynamicFieldService.UpdateField(&field); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
+			"success": false,
+			"message": err.Error(),
 		})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
+		"success": true,
 		"message": "更新成功",
 		"data":    field,
 	})
@@ -132,19 +143,22 @@ func (api *DynamicFieldApi) DeleteField(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "无效的ID",
+			"success": false,
+			"message": "无效的ID",
 		})
 		return
 	}
 
 	if err := dynamicFieldService.DeleteField(uint(id)); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
+			"success": false,
+			"message": err.Error(),
 		})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
+		"success": true,
 		"message": "删除成功",
 	})
 }
@@ -156,19 +170,22 @@ func (api *DynamicFieldApi) UpdateFieldOrder(c *gin.Context) {
 	}
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": err.Error(),
+			"success": false,
+			"message": err.Error(),
 		})
 		return
 	}
 
 	if err := dynamicFieldService.UpdateFieldOrder(req.FieldIDs); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
+			"success": false,
+			"message": err.Error(),
 		})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
+		"success": true,
 		"message": "排序更新成功",
 	})
 }
@@ -178,19 +195,22 @@ func (api *DynamicFieldApi) ToggleFieldStatus(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "无效的ID",
+			"success": false,
+			"message": "无效的ID",
 		})
 		return
 	}
 
 	if err := dynamicFieldService.ToggleFieldStatus(uint(id)); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
+			"success": false,
+			"message": err.Error(),
 		})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
+		"success": true,
 		"message": "状态切换成功",
 	})
 }
@@ -200,19 +220,22 @@ func (api *DynamicFieldApi) BatchCreateFields(c *gin.Context) {
 	var fields []model.DynamicField
 	if err := c.ShouldBindJSON(&fields); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": err.Error(),
+			"success": false,
+			"message": err.Error(),
 		})
 		return
 	}
 
 	if err := dynamicFieldService.BatchCreateFields(fields); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
+			"success": false,
+			"message": err.Error(),
 		})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
+		"success": true,
 		"message": "批量创建成功",
 		"data":    fields,
 	})

@@ -16,6 +16,9 @@ const DynamicTableManagement = lazy(() => import('../pages/DynamicTableManagemen
 const DynamicFieldManagement = lazy(() => import('../pages/DynamicFieldManagement'));
 const DynamicDataManagement = lazy(() => import('../pages/DynamicDataManagement'));
 
+// 其他页面
+const About = lazy(() => import('../pages/About'));
+
 // 加载组件包装器
 const LoadingWrapper = ({ children }) => (
   <Suspense fallback={
@@ -273,6 +276,19 @@ export const staticRoutes = [
     meta: {
       title: '日志管理',
       hidden: true
+    }
+  },
+  {
+    path: '/about',
+    element: (
+      <PermissionWrapper permission={{ resource: 'about', action: 'read' }}>
+        <About />
+      </PermissionWrapper>
+    ),
+    meta: {
+      title: '关于我们',
+      icon: 'fas fa-info-circle',
+      keepAlive: true
     }
   }
 ];

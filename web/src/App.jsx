@@ -55,7 +55,6 @@ function App() {
       // const routes = generateDynamicRoutes(menuData);
       // setDynamicRoutes(routes);
       
-      console.log('用户菜单数据:', menuData);
     } catch (error) {
       console.error('获取用户菜单失败:', error);
     }

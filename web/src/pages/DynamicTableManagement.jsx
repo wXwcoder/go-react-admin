@@ -67,7 +67,13 @@ const DynamicTableManagement = () => {
     setEditingTable(table);
     setModalVisible(true);
     if (table) {
-      form.setFieldsValue(table);
+      // 确保字段名正确映射
+      form.setFieldsValue({
+        name: table.name,
+        display_name: table.display_name,  // 确保使用display_name
+        description: table.description,
+        category: table.category
+      });
     } else {
       form.resetFields();
     }
@@ -210,8 +216,9 @@ const DynamicTableManagement = () => {
     {
       title: '操作',
       key: 'action',
+      width: 200,
       render: (_, record) => (
-        <Space size="middle">
+        <Space size="small">
           <Tooltip title="查看数据">
             <Button
               type="link"
@@ -239,21 +246,22 @@ const DynamicTableManagement = () => {
               onClick={() => openModal(record)}
             />
           </Tooltip>
-          <Popconfirm
-            title="确定要删除这个表吗？"
-            description="删除后将无法恢复，请谨慎操作。"
-            onConfirm={() => handleDelete(record.id)}
-            okText="确定"
-            cancelText="取消"
-          >
-            <Tooltip title="删除">
-              <Button
-                type="link"
-                danger
-                icon={<DeleteOutlined />}
-              />
-            </Tooltip>
-          </Popconfirm>
+          <Tooltip title="删除">
+            <Button
+              type="link"
+              danger
+              icon={<DeleteOutlined />}
+              onClick={() => {
+                Modal.confirm({
+                  title: '确定要删除这个表吗？',
+                  content: '删除后将无法恢复，请谨慎操作。',
+                  okText: '确定',
+                  cancelText: '取消',
+                  onOk: () => handleDelete(record.id),
+                });
+              }}
+            />
+          </Tooltip>
         </Space>
       ),
     },
@@ -321,7 +329,7 @@ const DynamicTableManagement = () => {
           </Form.Item>
 
           <Form.Item
-            name="displayName"
+            name="display_name"
             label="显示名称"
             rules={[{ required: true, message: '请输入显示名称' }]}
           >

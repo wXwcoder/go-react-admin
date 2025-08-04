@@ -24,9 +24,10 @@ import (
 	"go-react-admin/initialize"
 	"go-react-admin/router"
 
-	"github.com/gin-gonic/gin"
-	"github.com/gin-contrib/cors"
 	_ "go-react-admin/docs" // 引入生成的docs包
+
+	"github.com/gin-contrib/cors"
+	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
@@ -42,7 +43,7 @@ func main() {
 	initialize.Migrate()
 
 	// 初始化Redis
-	initialize.InitRedis()
+	//initialize.InitRedis()
 
 	// 初始化Casbin权限管理
 	initialize.InitCasbin()
@@ -66,7 +67,7 @@ func main() {
 	// 添加CORS中间件
 	config := cors.DefaultConfig()
 	config.AllowAllOrigins = true
-	config.AllowMethods = []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}
+	config.AllowMethods = []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"}
 	config.AllowHeaders = []string{"Origin", "Content-Type", "Accept", "Authorization", "Cache-Control", "Pragma", "Expires"}
 	r.Use(cors.New(config))
 
