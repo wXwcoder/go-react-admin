@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // 创建axios实例
 const api = axios.create({
-  baseURL: 'http://localhost:8080/api/v1', // 后端API地址
+  baseURL: process.env.REACT_APP_API_URL || 'http://127.0.0.1:8080/api/v1', // 后端API地址
   timeout: 5000,
 });
 
@@ -56,6 +56,14 @@ api.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
+// 认证相关API
+export const authApi = {
+  // 用户登录
+  login: (username, password) => api.post('/login', { username, password }),
+  // 用户登出
+  logout: () => api.post('/user/logout'),
+};
 
 // 用户相关API
 export const userApi = {

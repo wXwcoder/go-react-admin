@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { authApi, userApi } from '../api/index.js';
 import '../assets/styles/Login.css';
 
 const Login = () => {
@@ -10,50 +11,35 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // 发送登录请求
     try {
-      const response = await fetch('/api/v1/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ username, password }),
-      });
+      // 使用封装的登录API
+      const loginResponse = await authApi.login(username, password);
+      console.log("loginResponse",loginResponse);
+      const { token, userId } = loginResponse.data;
 
-      const data = await response.json();
-      console.log(data);
-      if (response.ok) {
-        // 保存token和userId到localStorage
-        localStorage.setItem('token', data.token);
-        localStorage.setItem('userId', data.userId);
+      if (token) {
+        // 登录成功，保存token和userId
+        localStorage.setItem('token', token);
+        localStorage.setItem('userId', userId);
         
-        // 获取并保存用户信息
-        try {
-          const userResponse = await fetch(`/api/v1/user/info`, {
-            method: 'GET',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${data.token}`,
-            },
-          });
-          
-          const userData = await userResponse.json();
-          if (userData.success && userData.user) {
-            localStorage.setItem('user', JSON.stringify(userData.user));
-            localStorage.setItem('userInfo', JSON.stringify(userData.user));
-          }
-        } catch (userError) {
-          console.error('获取用户信息失败:', userError);
-        }
+        // 获取用户信息
+        const userInfoResponse = await userApi.getUserInfo();
+        const user = userInfoResponse.data;
+        localStorage.setItem('user', JSON.stringify(user));
+        localStorage.setItem('userInfo', JSON.stringify(user));
         
         // 跳转到主页
         navigate('/dashboard');
       } else {
-        alert(data.error || '登录失败');
+        alert('登录失败：未获取到token');
       }
     } catch (error) {
       console.error('登录错误:', error);
-      alert('登录失败，请稍后重试');
+      if (error.response) {
+        alert(error.response.data?.message || '登录失败');
+      } else {
+        alert('登录失败，请稍后重试');
+      }
     }
   };
 

@@ -8,6 +8,8 @@ RUN apk add --no-cache git gcc musl-dev
 
 # Copy go mod files
 COPY go.mod go.sum ./
+RUN go env -w GO111MODULE=on
+RUN go env -w GOPROXY=https://goproxy.cn,direct
 RUN go mod download
 
 # Copy source code
