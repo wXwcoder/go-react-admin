@@ -10,7 +10,7 @@ Go React Admin是一个基于前后端分离架构的现代化管理系统，专
 
 
 ## 在线体验
-<a href="http://hantukeji.net:13000/" style="color: #1890ff; text-decoration: underline;">Go React Admin 在线体验 http://hantukeji.net:13000/</a>
+<a href="http://hantukeji.net:13000/" style="color: #1890ff; text-decoration: underline;" target="_blank" rel="noopener noreferrer">Go React Admin 在线体验 http://hantukeji.net:13000/</a>
 ### 测试账号：
 - 用户名：admin
 - 密码：123456
