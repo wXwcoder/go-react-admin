@@ -8,6 +8,14 @@ Go React Admin是一个基于前后端分离架构的现代化管理系统，专
 
 主要功能包括权限管理、用户管理、角色管理、菜单管理、API管理、日志管理等，适用于各种企业级应用场景。
 
+
+## 在线体验
+<a href="http://hantukeji.net:13000/" style="color: #1890ff; text-decoration: underline;">Go React Admin 在线体验 http://hantukeji.net:13000/</a>
+### 测试账号：
+- 用户名：admin
+- 密码：123456
+
+
 ## 预览图
 
 ![系统预览图](preview.jpg)
