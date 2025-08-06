@@ -32,6 +32,7 @@ func InitApiRoutes(r *gin.Engine) {
 		protected.POST("/user/create", api.CreateUser)
 		protected.PUT("/user/update/:id", api.UpdateUser)
 		protected.DELETE("/user/delete/:id", api.DeleteUser)
+		protected.POST("/user/upload-avatar", api.UploadAvatar)
 
 		// 角色相关路由
 		protected.GET("/role/list", api.GetRoleList)

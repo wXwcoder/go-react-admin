@@ -15,8 +15,10 @@ type User struct {
 	Username  string         `gorm:"uniqueIndex;size:50" json:"username" validate:"required,min=3,max=50" example:"admin"`
 	Password  string         `gorm:"size:100" json:"password" validate:"required,min=6,max=100" example:"123456"`
 	Nickname  string         `gorm:"size:50" json:"nickname" validate:"max=50" example:"管理员"`
+	RealName  string         `gorm:"size:50" json:"real_name" validate:"max=50" example:"张三"`
 	Email     string         `gorm:"size:100" json:"email" validate:"email,max=100" example:"admin@example.com"`
 	Phone     string         `gorm:"size:20" json:"phone" validate:"max=20" example:"13800138000"`
+	Bio       string         `gorm:"type:text" json:"bio" validate:"max=500" example:"这是一个用户简介"`
 	Status    int            `gorm:"default:1" json:"status" validate:"oneof=1 2" example:"1"` // 1:启用 2:禁用
 	Avatar    string         `gorm:"size:255" json:"avatar" validate:"max=255" example:"https://example.com/avatar.jpg"`
 	TenantID  uint           `gorm:"index" json:"tenant_id" example:"1"` // 租户ID

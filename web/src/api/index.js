@@ -71,12 +71,24 @@ export const userApi = {
   getUserList: () => api.get('/user/list'),
   // 获取用户信息
   getUserInfo: () => api.get('/user/info'),
+  // 获取当前用户信息
+  getCurrentUserInfo: () => api.get('/user/info'),
   // 创建用户
   createUser: (data) => api.post('/user/create', data),
   // 更新用户
   updateUser: (id, data) => api.put(`/user/update/${id}`, data),
   // 删除用户
   deleteUser: (id) => api.delete(`/user/delete/${id}`),
+  // 上传头像
+  uploadAvatar: (file) => {
+    const formData = new FormData();
+    formData.append('avatar', file);
+    return api.post('/user/upload-avatar', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+  },
 };
 
 // 角色相关API

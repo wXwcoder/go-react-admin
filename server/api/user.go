@@ -3,7 +3,10 @@ package api
 import (
 	"fmt"
 	"net/http"
+	"os"
+	"path/filepath"
 	"strconv"
+	"time"
 
 	"go-react-admin/global"
 	"go-react-admin/model"
@@ -300,5 +303,109 @@ func DeleteUser(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"message": "用户删除成功",
+	})
+}
+
+// UploadAvatar 上传头像
+// @Summary 上传用户头像
+// @Description 上传并更新用户头像
+// @Tags 用户管理
+// @Accept multipart/form-data
+// @Produce json
+// @Security ApiKeyAuth
+// @Param avatar formData file true "头像文件"
+// @Success 200 {object} map[string]interface{} "{"message":"头像上传成功","avatar_url":"string"}"
+// @Failure 400 {object} map[string]interface{} "{"error":"头像文件不能为空"}"
+// @Failure 500 {object} map[string]interface{} "{"error":"头像上传失败"}"
+// @Router /api/user/upload-avatar [post]
+func UploadAvatar(c *gin.Context) {
+	// 从上下文中获取用户ID
+	userID, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"success": false,
+			"message": "无法获取用户信息",
+		})
+		return
+	}
+
+	// 获取上传的文件
+	file, err := c.FormFile("avatar")
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"success": false,
+			"message": "头像文件不能为空",
+		})
+		return
+	}
+
+	// 验证文件类型
+	allowedTypes := map[string]bool{
+		"image/jpeg": true,
+		"image/png":  true,
+		"image/jpg":  true,
+	}
+	if !allowedTypes[file.Header.Get("Content-Type")] {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"success": false,
+			"message": "只允许上传JPG、PNG格式的图片",
+		})
+		return
+	}
+
+	// 验证文件大小 (最大2MB)
+	if file.Size > 2*1024*1024 {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"success": false,
+			"message": "头像文件大小不能超过2MB",
+		})
+		return
+	}
+
+	// 生成文件名
+	ext := ".jpg"
+	if file.Header.Get("Content-Type") == "image/png" {
+		ext = ".png"
+	}
+	filename := fmt.Sprintf("avatar_%d_%d%s", userID, time.Now().Unix(), ext)
+
+	// 确保上传目录存在
+	uploadDir := "./uploads/avatars"
+	if err := os.MkdirAll(uploadDir, 0755); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"success": false,
+			"message": "创建上传目录失败",
+		})
+		return
+	}
+
+	// 保存文件
+	filepath := filepath.Join(uploadDir, filename)
+	if err := c.SaveUploadedFile(file, filepath); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"success": false,
+			"message": "保存头像文件失败",
+		})
+		return
+	}
+
+	// 生成访问URL
+	avatarURL := fmt.Sprintf("/uploads/avatars/%s", filename)
+
+	// 更新用户头像信息
+	if err := global.DB.Model(&model.User{}).Where("id = ?", userID).Update("avatar", avatarURL).Error; err != nil {
+		// 删除已上传的文件
+		os.Remove(filepath)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"success": false,
+			"message": "更新用户头像信息失败",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"message": "头像上传成功",
+		"avatar_url": avatarURL,
 	})
 }

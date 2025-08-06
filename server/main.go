@@ -74,6 +74,9 @@ func main() {
 	// 初始化API路由
 	router.InitApiRoutes(r)
 
+	// 添加静态文件服务
+	r.Static("/uploads", "./uploads")
+
 	// 添加Swagger路由
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 

@@ -10,6 +10,7 @@ const MenuManagement = lazy(() => import('../pages/MenuManagement'));
 const ApiManagement = lazy(() => import('../pages/ApiManagement'));
 const PermissionManagement = lazy(() => import('../pages/PermissionManagement'));
 const LogManagement = lazy(() => import('../pages/LogManagement'));
+const UserProfile = lazy(() => import('../pages/UserProfile'));
 
 // 动态数据管理页面
 const DynamicTableManagement = lazy(() => import('../pages/DynamicTableManagement'));
@@ -275,6 +276,20 @@ export const staticRoutes = [
     element: <Navigate to="/system/logs" replace />,
     meta: {
       title: '日志管理',
+      hidden: true
+    }
+  },
+  {
+    path: '/profile',
+    element: (
+      <PermissionWrapper permission={{ resource: 'profile', action: 'read' }}>
+        <UserProfile />
+      </PermissionWrapper>
+    ),
+    meta: {
+      title: '个人信息',
+      icon: 'fas fa-user',
+      keepAlive: true,
       hidden: true
     }
   },
