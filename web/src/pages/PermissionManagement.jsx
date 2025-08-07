@@ -132,6 +132,31 @@ const PermissionManagement = () => {
     }));
   };
 
+  // 处理批量权限选择
+  const handleBatchPermissionChange = (type, ids, checked) => {
+    setSelectedPermissions(prev => {
+      const current = prev[type] || [];
+      if (checked) {
+        return {
+          ...prev,
+          [type]: [...new Set([...current, ...ids])]
+        };
+      } else {
+        return {
+          ...prev,
+          [type]: current.filter(id => !ids.includes(id))
+        };
+      }
+    });
+  };
+
+  // 全选/取消全选
+  const handleSelectAll = (type, allIds) => {
+    const current = selectedPermissions[type] || [];
+    const shouldSelectAll = current.length < allIds.length;
+    handleBatchPermissionChange(type, allIds, shouldSelectAll);
+  };
+
   const renderRolePermissions = () => (
     <div>
       <h3>角色权限管理</h3>
@@ -229,44 +254,219 @@ const PermissionManagement = () => {
   const renderPermissionModal = () => {
     if (!currentItem) return null;
 
+    // 按父节点分组菜单
+    const groupMenusByParent = () => {
+      const groups = {};
+      const rootMenus = menus.filter(menu => !menu.parent_id || menu.parent_id === 0);
+      
+      rootMenus.forEach(rootMenu => {
+        const children = menus.filter(menu => menu.parent_id === rootMenu.id);
+        if (children.length > 0) {
+          groups[rootMenu.id] = {
+            parent: rootMenu,
+            children: children
+          };
+        } else {
+          groups[rootMenu.id] = {
+            parent: rootMenu,
+            children: [rootMenu]
+          };
+        }
+      });
+
+      // 处理没有父节点的独立菜单
+      menus.forEach(menu => {
+        if (!groups[menu.id] && (!menu.parent_id || menu.parent_id === 0)) {
+          groups[menu.id] = {
+            parent: menu,
+            children: [menu]
+          };
+        }
+      });
+
+      return groups;
+    };
+
+    // 按API路径分组
+    const groupApisByPath = () => {
+      const groups = {};
+      
+      apis.forEach(api => {
+        let groupKey = '其他';
+        const path = api.path.toLowerCase();
+        
+        // 按API路径特征分组
+        if (path.includes('/user') || path.includes('/users')) {
+          groupKey = '用户管理';
+        } else if (path.includes('/role') || path.includes('/roles')) {
+          groupKey = '角色管理';
+        } else if (path.includes('/menu') || path.includes('/menus')) {
+          groupKey = '菜单管理';
+        } else if (path.includes('/api') || path.includes('/apis')) {
+          groupKey = 'API管理';
+        } else if (path.includes('/permission') || path.includes('/permissions')) {
+          groupKey = '权限管理';
+        } else if (path.includes('/tenant') || path.includes('/tenants')) {
+          groupKey = '租户管理';
+        } else if (path.includes('/log') || path.includes('/logs')) {
+          groupKey = '日志管理';
+        } else if (path.includes('/dynamic') || path.includes('/table')) {
+          groupKey = '动态数据';
+        } else {
+          // 提取路径的第一个有意义的部分
+          const pathParts = api.path.split('/').filter(part => part && !part.startsWith(':'));
+          if (pathParts.length > 0) {
+            const firstPart = pathParts[0];
+            if (firstPart && firstPart.length > 1) {
+              groupKey = firstPart.charAt(0).toUpperCase() + firstPart.slice(1);
+            }
+          }
+        }
+        
+        if (!groups[groupKey]) {
+          groups[groupKey] = [];
+        }
+        groups[groupKey].push(api);
+      });
+      
+      // 按字母顺序排序分组
+      const sortedGroups = {};
+      Object.keys(groups).sort().forEach(key => {
+        sortedGroups[key] = groups[key];
+      });
+      
+      return sortedGroups;
+    };
+
     if (currentItem.type === 'role') {
+      const menuGroups = groupMenusByParent();
+      const apiGroups = groupApisByPath();
+
       return (
         <div>
           <h3>配置角色权限 - {currentItem.data.role?.name}</h3>
           
           <div style={{ marginBottom: '20px' }}>
-            <h4>菜单权限</h4>
-            <div style={{ maxHeight: '200px', overflowY: 'auto', border: '1px solid #ddd', padding: '10px' }}>
-              {menus.map(menu => (
-                <div key={menu.id} style={{ marginBottom: '5px' }}>
-                  <label>
-                    <input
-                      type="checkbox"
-                      checked={selectedPermissions.menus.includes(menu.id)}
-                      onChange={(e) => handlePermissionChange('menus', menu.id, e.target.checked)}
-                    />
-                    <span style={{ marginLeft: '5px' }}>{menu.title} ({menu.path})</span>
-                  </label>
-                </div>
-              ))}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+              <h4 style={{ margin: 0 }}>菜单权限</h4>
+              <button
+                onClick={() => handleSelectAll('menus', menus.map(m => m.id))}
+                style={{
+                  padding: '5px 10px',
+                  backgroundColor: '#17a2b8',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                  fontSize: '12px'
+                }}
+              >
+                {selectedPermissions.menus.length === menus.length ? '取消全选' : '全选'}
+              </button>
+            </div>
+            
+            <div style={{ maxHeight: '300px', overflowY: 'auto', border: '1px solid #ddd', padding: '10px' }}>
+              {Object.entries(menuGroups).map(([groupId, group]) => {
+                const groupMenuIds = group.children.map(child => child.id);
+                const selectedInGroup = groupMenuIds.filter(id => selectedPermissions.menus.includes(id));
+                const isGroupSelected = selectedInGroup.length === groupMenuIds.length;
+                
+                return (
+                  <div key={groupId} style={{ marginBottom: '15px', border: '1px solid #eee', padding: '10px', borderRadius: '4px' }}>
+                    <div style={{ marginBottom: '8px', fontWeight: 'bold', backgroundColor: '#f8f9fa', padding: '5px', borderRadius: '3px' }}>
+                      <label>
+                        <input
+                          type="checkbox"
+                          checked={isGroupSelected}
+                          onChange={(e) => handleBatchPermissionChange('menus', groupMenuIds, e.target.checked)}
+                        />
+                        <span style={{ marginLeft: '5px' }}>
+                          {group.parent.title} {group.children.length > 1 ? `(${group.children.length}项)` : ''}
+                        </span>
+                      </label>
+                    </div>
+                    
+                    <div style={{ marginLeft: '20px' }}>
+                      {group.children.map(menu => (
+                        <div key={menu.id} style={{ marginBottom: '3px' }}>
+                          <label style={{ fontSize: '14px' }}>
+                            <input
+                              type="checkbox"
+                              checked={selectedPermissions.menus.includes(menu.id)}
+                              onChange={(e) => handlePermissionChange('menus', menu.id, e.target.checked)}
+                            />
+                            <span style={{ marginLeft: '5px' }}>
+                              {menu.title} {menu.path && menu.path !== menu.title ? `(${menu.path})` : ''}
+                            </span>
+                          </label>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
 
           <div style={{ marginBottom: '20px' }}>
-            <h4>API权限</h4>
-            <div style={{ maxHeight: '200px', overflowY: 'auto', border: '1px solid #ddd', padding: '10px' }}>
-              {apis.map(api => (
-                <div key={api.id} style={{ marginBottom: '5px' }}>
-                  <label>
-                    <input
-                      type="checkbox"
-                      checked={selectedPermissions.apis.includes(api.id)}
-                      onChange={(e) => handlePermissionChange('apis', api.id, e.target.checked)}
-                    />
-                    <span style={{ marginLeft: '5px' }}>{api.method} {api.path} - {api.description}</span>
-                  </label>
-                </div>
-              ))}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+              <h4 style={{ margin: 0 }}>API权限</h4>
+              <button
+                onClick={() => handleSelectAll('apis', apis.map(a => a.id))}
+                style={{
+                  padding: '5px 10px',
+                  backgroundColor: '#17a2b8',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                  fontSize: '12px'
+                }}
+              >
+                {selectedPermissions.apis.length === apis.length ? '取消全选' : '全选'}
+              </button>
+            </div>
+            
+            <div style={{ maxHeight: '300px', overflowY: 'auto', border: '1px solid #ddd', padding: '10px' }}>
+              {Object.entries(apiGroups).map(([groupKey, groupApis]) => {
+                const groupApiIds = groupApis.map(api => api.id);
+                const selectedInGroup = groupApiIds.filter(id => selectedPermissions.apis.includes(id));
+                const isGroupSelected = selectedInGroup.length === groupApiIds.length;
+                
+                return (
+                  <div key={groupKey} style={{ marginBottom: '15px', border: '1px solid #eee', padding: '10px', borderRadius: '4px' }}>
+                    <div style={{ marginBottom: '8px', fontWeight: 'bold', backgroundColor: '#f8f9fa', padding: '5px', borderRadius: '3px' }}>
+                      <label>
+                        <input
+                          type="checkbox"
+                          checked={isGroupSelected}
+                          onChange={(e) => handleBatchPermissionChange('apis', groupApiIds, e.target.checked)}
+                        />
+                        <span style={{ marginLeft: '5px' }}>
+                          /{groupKey} ({groupApis.length}项)
+                        </span>
+                      </label>
+                    </div>
+                    
+                    <div style={{ marginLeft: '20px' }}>
+                      {groupApis.map(api => (
+                        <div key={api.id} style={{ marginBottom: '3px' }}>
+                          <label style={{ fontSize: '14px' }}>
+                            <input
+                              type="checkbox"
+                              checked={selectedPermissions.apis.includes(api.id)}
+                              onChange={(e) => handlePermissionChange('apis', api.id, e.target.checked)}
+                            />
+                            <span style={{ marginLeft: '5px' }}>
+                              {api.method} {api.path} - {api.description}
+                            </span>
+                          </label>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
 
@@ -309,17 +509,36 @@ const PermissionManagement = () => {
           <h3>分配用户角色 - {currentItem.data.user?.username}</h3>
           
           <div style={{ marginBottom: '20px' }}>
-            <h4>选择角色</h4>
-            <div style={{ maxHeight: '200px', overflowY: 'auto', border: '1px solid #ddd', padding: '10px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+              <h4 style={{ margin: 0 }}>选择角色</h4>
+              <button
+                onClick={() => handleSelectAll('roles', roles.map(r => r.id))}
+                style={{
+                  padding: '5px 10px',
+                  backgroundColor: '#17a2b8',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                  fontSize: '12px'
+                }}
+              >
+                {selectedPermissions.roles?.length === roles.length ? '取消全选' : '全选'}
+              </button>
+            </div>
+            
+            <div style={{ maxHeight: '300px', overflowY: 'auto', border: '1px solid #ddd', padding: '10px' }}>
               {roles.map(role => (
-                <div key={role.id} style={{ marginBottom: '5px' }}>
+                <div key={role.id} style={{ marginBottom: '8px', padding: '5px', border: '1px solid #eee', borderRadius: '4px' }}>
                   <label>
                     <input
                       type="checkbox"
                       checked={selectedPermissions.roles?.includes(role.id) || false}
                       onChange={(e) => handlePermissionChange('roles', role.id, e.target.checked)}
                     />
-                    <span style={{ marginLeft: '5px' }}>{role.name} - {role.description}</span>
+                    <span style={{ marginLeft: '5px' }}>
+                      {role.name} - {role.description}
+                    </span>
                   </label>
                 </div>
               ))}

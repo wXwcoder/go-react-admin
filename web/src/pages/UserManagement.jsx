@@ -10,10 +10,12 @@ const UserManagement = () => {
   const [currentUser, setCurrentUser] = useState(null); // 用于存储当前编辑或创建的用户
   const [selectedRoles, setSelectedRoles] = useState([]); // 存储选择的角色
   const [availableRoles, setAvailableRoles] = useState([]); // 可用角色列表
+  const [availableTenants, setAvailableTenants] = useState([]); // 可用租户列表
 
   useEffect(() => {
     fetchUsers();
     fetchRoles();
+    fetchTenants();
   }, []);
 
   // 从API获取用户数据及角色信息
@@ -65,6 +67,21 @@ const UserManagement = () => {
         { id: 2, name: '普通用户' },
         { id: 3, name: '编辑' },
         { id: 4, name: '访客' }
+      ]);
+    }
+  };
+
+  // 从API获取租户列表
+  const fetchTenants = async () => {
+    try {
+      const response = await userApi.getTenantList();
+      const tenants = response.data.tenants || [];
+      setAvailableTenants(tenants);
+    } catch (error) {
+      console.error('获取租户列表失败:', error);
+      // 如果获取失败，使用默认租户
+      setAvailableTenants([
+        { id: 1, name: '默认租户' }
       ]);
     }
   };
@@ -149,6 +166,7 @@ const UserManagement = () => {
               <th>ID</th>
               <th>用户名</th>
               <th>邮箱</th>
+              <th>租户ID</th>
               <th>角色</th>
               <th>状态</th>
               <th>操作</th>
@@ -160,6 +178,7 @@ const UserManagement = () => {
                 <td>{user.id}</td>
                 <td>{user.username}</td>
                 <td>{user.email}</td>
+                <td>{user.tenant_id || 1}</td>
                 <td>{user.roles ? user.roles.map(r => r.name).join(', ') : ''}</td>
                 <td>{user.status === 1 ? '启用' : '禁用'}</td>
                 <td>
@@ -215,6 +234,8 @@ const UserManagement = () => {
           const userData = {
             username: formData.get('username'),
             email: formData.get('email'),
+            password: formData.get('password'),
+            tenant_id: parseInt(formData.get('tenant_id')) || 1,
             status: parseInt(formData.get('status')) || 1
           };
           
@@ -247,6 +268,35 @@ const UserManagement = () => {
               required 
               style={{ width: '100%', padding: '8px', marginTop: '5px' }}
             />
+          </div>
+          <div style={{ marginBottom: '15px' }}>
+            <label>密码: </label>
+            <input 
+              type="password" 
+              name="password" 
+              placeholder={currentUser ? '留空则不修改密码' : '请输入密码'}
+              required={!currentUser} 
+              style={{ width: '100%', padding: '8px', marginTop: '5px' }}
+            />
+          </div>
+          <div style={{ marginBottom: '15px' }}>
+            <label>租户: </label>
+            <select 
+              name="tenant_id" 
+              defaultValue={currentUser?.tenant_id || (availableTenants.length > 0 ? availableTenants[0].id : 1)} 
+              required 
+              style={{ width: '100%', padding: '8px', marginTop: '5px' }}
+            >
+              {availableTenants.length > 0 ? (
+                availableTenants.map(tenant => (
+                  <option key={tenant.id} value={tenant.id}>
+                    {tenant.name} (ID: {tenant.id})
+                  </option>
+                ))
+              ) : (
+                <option value="1">默认租户 (ID: 1)</option>
+              )}
+            </select>
           </div>
           <div style={{ marginBottom: '15px' }}>
             <label>角色: </label>

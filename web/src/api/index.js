@@ -89,6 +89,8 @@ export const userApi = {
       },
     });
   },
+  // 获取租户列表
+  getTenantList: () => api.get('/tenant/list'),
 };
 
 // 角色相关API

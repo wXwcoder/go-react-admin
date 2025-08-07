@@ -199,15 +199,41 @@ func GetUserList(c *gin.Context) {
 // @Failure 500 {object} map[string]interface{} "{"error":"创建用户失败"}"
 // @Router /api/users [post]
 func CreateUser(c *gin.Context) {
-	var user model.User
-	// 绑定JSON到user
-	if err := c.ShouldBindJSON(&user); err != nil {
+	var requestData struct {
+		Username string `json:"username"`
+		Email    string `json:"email"`
+		Password string `json:"password"`
+		TenantID uint   `json:"tenant_id"`
+		Status   int    `json:"status"`
+		RoleIDs  []uint  `json:"role_ids"`
+	}
+	
+	// 绑定JSON到requestData
+	if err := c.ShouldBindJSON(&requestData); err != nil {
 		fmt.Printf("绑定JSON错误: %v\n", err)
 		c.JSON(http.StatusBadRequest, gin.H{
 			"success": false,
 			"message": "请求参数错误",
 		})
 		return
+	}
+
+	// 验证密码
+	if requestData.Password == "" {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"success": false,
+			"message": "密码不能为空",
+		})
+		return
+	}
+
+	// 创建用户对象
+	user := model.User{
+		Username: requestData.Username,
+		Email:    requestData.Email,
+		Password: requestData.Password,
+		TenantID: requestData.TenantID,
+		Status:   requestData.Status,
 	}
 
 	fmt.Printf("接收到的用户数据: %+v\n", user)
@@ -220,6 +246,24 @@ func CreateUser(c *gin.Context) {
 			"message": "创建用户失败",
 		})
 		return
+	}
+
+	// 分配角色
+	if len(requestData.RoleIDs) > 0 {
+		var userRoles []model.UserRole
+		for _, roleID := range requestData.RoleIDs {
+			userRoles = append(userRoles, model.UserRole{
+				UserID:   user.ID,
+				RoleID:   roleID,
+				TenantID: user.TenantID,
+			})
+		}
+		
+		if err := global.DB.Create(&userRoles).Error; err != nil {
+			fmt.Printf("分配角色错误: %v\n", err)
+			// 如果角色分配失败，不返回错误，只记录日志
+			fmt.Printf("用户创建成功但角色分配失败: %v\n", err)
+		}
 	}
 
 	fmt.Printf("用户创建成功: %+v\n", user)
@@ -245,9 +289,17 @@ func CreateUser(c *gin.Context) {
 // @Router /api/users/{id} [put]
 func UpdateUser(c *gin.Context) {
 	id := c.Param("id")
-	var user model.User
-	// 绑定JSON到user
-	if err := c.ShouldBindJSON(&user); err != nil {
+	var requestData struct {
+		Username string `json:"username"`
+		Email    string `json:"email"`
+		Password string `json:"password"`
+		TenantID uint   `json:"tenant_id"`
+		Status   int    `json:"status"`
+		RoleIDs  []uint  `json:"role_ids"`
+	}
+	
+	// 绑定JSON到requestData
+	if err := c.ShouldBindJSON(&requestData); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"success": false,
 			"message": "请求参数错误",
@@ -255,13 +307,52 @@ func UpdateUser(c *gin.Context) {
 		return
 	}
 
+	// 如果密码为空，则不更新密码
+	updateData := map[string]interface{}{
+		"username":  requestData.Username,
+		"email":     requestData.Email,
+		"status":    requestData.Status,
+		"tenant_id": requestData.TenantID,
+	}
+
+	// 如果有密码，则添加密码更新
+	if requestData.Password != "" {
+		updateData["password"] = requestData.Password
+	}
+
 	// 更新用户
-	if err := global.DB.Model(&model.User{}).Where("id = ?", id).Updates(user).Error; err != nil {
+	if err := global.DB.Model(&model.User{}).Where("id = ?", id).Updates(updateData).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"success": false,
 			"message": "更新用户失败",
 		})
 		return
+	}
+
+	// 更新角色关联
+	if requestData.RoleIDs != nil {
+		// 先删除现有的角色关联
+		if err := global.DB.Where("user_id = ?", id).Delete(&model.UserRole{}).Error; err != nil {
+			fmt.Printf("删除旧角色关联错误: %v\n", err)
+		}
+
+		// 如果有角色ID，则添加新的角色关联
+		if len(requestData.RoleIDs) > 0 {
+			var userRoles []model.UserRole
+			userID, _ := strconv.Atoi(id)
+			for _, roleID := range requestData.RoleIDs {
+				userRoles = append(userRoles, model.UserRole{
+					UserID:   uint(userID),
+					RoleID:   roleID,
+					TenantID: requestData.TenantID,
+				})
+			}
+			
+			if err := global.DB.Create(&userRoles).Error; err != nil {
+				fmt.Printf("分配新角色错误: %v\n", err)
+				// 如果角色分配失败，不返回错误，只记录日志
+			}
+		}
 	}
 
 	c.JSON(http.StatusOK, gin.H{
