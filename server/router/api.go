@@ -59,12 +59,12 @@ func InitApiRoutes(r *gin.Engine) {
 			// 角色权限管理
 			permissions.POST("/role", permissionApi.AssignRolePermissions)
 			permissions.GET("/role/:id", permissionApi.GetRolePermissions)
-			
+
 			// 用户角色管理
 			permissions.POST("/user", permissionApi.AssignUserRoles)
 			permissions.GET("/user/:id/roles", permissionApi.GetUserRoles)
 			permissions.GET("/user/:id/permissions", permissionApi.GetUserPermissions)
-			
+
 			// 权限检查
 			permissions.GET("/check", permissionApi.CheckPermission)
 		}
@@ -75,8 +75,49 @@ func InitApiRoutes(r *gin.Engine) {
 		// 租户相关路由
 		protected.GET("/tenant/list", api.GetTenantList)
 
+		// 第三方客户管理路由
+		protected.GET("/admin/customers", api.CustomerApi.GetCustomerList)
+		protected.POST("/admin/customers", api.CustomerApi.CreateCustomer)
+		protected.GET("/admin/customers/:id", api.CustomerApi.GetCustomer)
+		protected.PUT("/admin/customers/:id", api.CustomerApi.UpdateCustomer)
+		protected.DELETE("/admin/customers/:id", api.CustomerApi.DeleteCustomer)
+		protected.PUT("/admin/customers/:id/status", api.CustomerApi.UpdateCustomerStatus)
+		protected.POST("/admin/customers/:id/ban", api.CustomerApi.BanCustomer)
+		protected.POST("/admin/customers/:id/unban", api.CustomerApi.UnbanCustomer)
+
+		// 第三方客户消息管理路由
+		protected.POST("/admin/customer-messages", api.CustomerMessageApi.AdminCreateMessage)
+		protected.POST("/admin/customer-messages/batch", api.CustomerMessageApi.AdminCreateMessagesBatch)
+
 		// 动态数据管理路由
 		InitDynamicRoutes(protected)
+	}
+
+	// 第三方客户认证路由
+	customerAuth := r.Group("/api/v1/customer")
+	{
+		customerAuth.POST("/register", api.CustomerAuthApi.Register)
+		customerAuth.POST("/login", api.CustomerAuthApi.Login)
+		customerAuth.POST("/reset-password", api.CustomerAuthApi.ResetPassword)
+	}
+
+	// 第三方客户受保护路由
+	customerProtected := r.Group("/api/v1/customer")
+	customerProtected.Use(middleware.CustomerJWTAuth())
+	{
+		customerProtected.GET("/profile", api.CustomerAuthApi.GetProfile)
+		customerProtected.PUT("/profile", api.CustomerAuthApi.UpdateProfile)
+		customerProtected.PUT("/password", api.CustomerAuthApi.UpdatePassword)
+		customerProtected.POST("/logout", api.CustomerAuthApi.Logout)
+		customerProtected.POST("/refresh-token", api.CustomerAuthApi.RefreshToken)
+
+		// 第三方客户消息路由
+		customerProtected.GET("/messages", api.CustomerMessageApi.GetMessages)
+		customerProtected.GET("/messages/:id", api.CustomerMessageApi.GetMessageDetail)
+		customerProtected.PUT("/messages/:id/read", api.CustomerMessageApi.MarkMessageAsRead)
+		customerProtected.PUT("/messages/batch-read", api.CustomerMessageApi.MarkMessagesAsReadBatch)
+		customerProtected.GET("/messages/unread-count", api.CustomerMessageApi.GetUnreadCount)
+		customerProtected.DELETE("/messages/:id", api.CustomerMessageApi.DeleteMessage)
 	}
 
 	// 需要权限验证的路由

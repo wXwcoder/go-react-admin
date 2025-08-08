@@ -20,6 +20,13 @@ const DynamicDataManagement = lazy(() => import('../pages/DynamicDataManagement'
 // 其他页面
 const About = lazy(() => import('../pages/About'));
 
+// 第三方客户系统页面
+const CustomerLogin = lazy(() => import('../pages/CustomerLogin'));
+const CustomerRegister = lazy(() => import('../pages/CustomerRegister'));
+const CustomerProfile = lazy(() => import('../pages/CustomerProfile'));
+const CustomerMessages = lazy(() => import('../pages/CustomerMessages'));
+const CustomerManagement = lazy(() => import('../pages/CustomerManagement'));
+
 // 加载组件包装器
 const LoadingWrapper = ({ children }) => (
   <Suspense fallback={
@@ -150,6 +157,21 @@ export const staticRoutes = [
     meta: {
       title: '日志管理',
       icon: 'fas fa-history',
+      keepAlive: true
+    }
+  },
+  
+  // 第三方客户管理路由
+  {
+    path: '/customers',
+    element: (
+      <PermissionWrapper permission={{ resource: 'customer', action: 'read' }}>
+        <CustomerManagement />
+      </PermissionWrapper>
+    ),
+    meta: {
+      title: '客户管理',
+      icon: 'fas fa-user-friends',
       keepAlive: true
     }
   },

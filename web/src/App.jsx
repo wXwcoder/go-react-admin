@@ -5,6 +5,7 @@ import Login from './pages/Login';
 import Layout from './components/Layout';
 import { ThemeProvider } from './store/ThemeContext';
 import { staticRoutes } from './routes';
+import { customerRoutes } from './routes/customer';
 import { menuApi } from './api';
 import './assets/styles/App.css';
 import './assets/styles/message-fix.css';
@@ -78,6 +79,32 @@ function App() {
           <Routes>
             {/* 公开路由 */}
             <Route path="/login" element={<Login />} />
+            
+            {/* 客户系统路由 - 无需权限验证 */}
+            {customerRoutes.map((route, index) => (
+              route.children ? (
+                <Route
+                  key={`customer-${index}`}
+                  path={route.path}
+                  element={route.element}
+                >
+                  {route.children.map((child, childIndex) => (
+                    <Route
+                      key={`customer-child-${childIndex}`}
+                      path={child.path || ''}
+                      index={child.index}
+                      element={child.element}
+                    />
+                  ))}
+                </Route>
+              ) : (
+                <Route
+                  key={`customer-${index}`}
+                  path={route.path}
+                  element={route.element}
+                />
+              )
+            ))}
             
             {/* 受保护的路由 */}
             <Route path="/" element={
