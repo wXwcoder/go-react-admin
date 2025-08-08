@@ -20,6 +20,10 @@ func Migrate() {
 		&model.UserRole{},
 		&model.RoleMenu{},
 		&model.RoleApi{},
+		// 第三方客户系统相关表
+		&model.Customer{},
+		&model.Message{},
+		&model.CustomerMessage{},
 		// 动态数据管理平台相关表
 		&model.DynamicTable{},
 		&model.DynamicField{},

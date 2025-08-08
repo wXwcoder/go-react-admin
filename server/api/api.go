@@ -10,6 +10,13 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// 第三方客户管理相关API实例
+var (
+	CustomerApi        = &CustomerAPI{}
+	CustomerAuthApi    = &CustomerAuthAPI{}
+	CustomerMessageApi = &CustomerMessageAPI{}
+)
+
 // GetApiList 获取API列表
 // @Summary 获取API列表
 // @Description 获取所有API的列表

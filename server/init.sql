@@ -125,3 +125,68 @@ CREATE TABLE IF NOT EXISTS `dynamic_import_export_logs` (
 CREATE INDEX `idx_dynamic_fields_table_status_sort` ON `dynamic_fields` (`table_id`, `status`, `sort_order`);
 CREATE INDEX `idx_dynamic_tables_tenant_status` ON `dynamic_tables` (`tenant_id`, `status`);
 CREATE INDEX `idx_table_permissions_table_role_view` ON `table_permissions` (`table_id`, `role_id`, `can_view`);
+
+-- ========================================
+-- 第三方客户系统表结构
+-- ========================================
+
+-- 第三方客户账号表
+CREATE TABLE IF NOT EXISTS `customers` (
+    `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+    `username` varchar(50) NOT NULL COMMENT '用户名',
+    `email` varchar(100) NOT NULL COMMENT '邮箱',
+    `password_hash` varchar(255) NOT NULL COMMENT '密码哈希',
+    `phone` varchar(20) DEFAULT NULL COMMENT '手机号',
+    `real_name` varchar(50) DEFAULT NULL COMMENT '真实姓名',
+    `avatar_url` varchar(500) DEFAULT NULL COMMENT '头像URL',
+    `status` enum('active','banned','pending') DEFAULT 'pending' COMMENT '账号状态',
+    `last_login_at` datetime DEFAULT NULL COMMENT '最后登录时间',
+    `login_count` int DEFAULT '0' COMMENT '登录次数',
+    `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    `deleted_at` datetime DEFAULT NULL COMMENT '软删除时间',
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `idx_customers_username` (`username`),
+    UNIQUE KEY `idx_customers_email` (`email`),
+    KEY `idx_customers_status` (`status`),
+    KEY `idx_customers_created_at` (`created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='第三方客户账号';
+
+-- 站内信消息表
+CREATE TABLE IF NOT EXISTS `messages` (
+    `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+    `title` varchar(255) NOT NULL COMMENT '消息标题',
+    `content` text NOT NULL COMMENT '消息内容',
+    `type` enum('system','notice','private') DEFAULT 'system' COMMENT '消息类型',
+    `status` enum('draft','published','revoked') DEFAULT 'draft' COMMENT '消息状态',
+    `priority` int DEFAULT '0' COMMENT '优先级',
+    `sender_id` bigint unsigned DEFAULT NULL COMMENT '发送者ID',
+    `sender_type` varchar(50) DEFAULT 'system' COMMENT '发送者类型',
+    `target_type` varchar(50) DEFAULT 'all' COMMENT '目标类型',
+    `target_id` bigint unsigned DEFAULT NULL COMMENT '目标ID',
+    `expired_at` datetime DEFAULT NULL COMMENT '过期时间',
+    `read_count` int DEFAULT '0' COMMENT '阅读次数',
+    `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    `deleted_at` datetime DEFAULT NULL COMMENT '软删除时间',
+    PRIMARY KEY (`id`),
+    KEY `idx_messages_type` (`type`),
+    KEY `idx_messages_status` (`status`),
+    KEY `idx_messages_created_at` (`created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='站内信消息';
+
+-- 第三方客户站内信关联表
+CREATE TABLE IF NOT EXISTS `customer_messages` (
+    `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+    `message_id` bigint unsigned NOT NULL COMMENT '消息ID',
+    `customer_id` bigint unsigned NOT NULL COMMENT '客户ID',
+    `is_read` tinyint(1) DEFAULT '0' COMMENT '是否已读',
+    `read_time` datetime DEFAULT NULL COMMENT '阅读时间',
+    `is_deleted` tinyint(1) DEFAULT '0' COMMENT '是否删除',
+    `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    KEY `idx_customer_message` (`customer_id`, `message_id`),
+    KEY `idx_message_customer` (`message_id`, `customer_id`),
+    FOREIGN KEY (`message_id`) REFERENCES `messages` (`id`) ON DELETE CASCADE,
+    FOREIGN KEY (`customer_id`) REFERENCES `customers` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='客户消息关联';
