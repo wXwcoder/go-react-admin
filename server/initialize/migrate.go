@@ -24,6 +24,11 @@ func Migrate() {
 		&model.Customer{},
 		&model.Message{},
 		&model.CustomerMessage{},
+		&model.Announcement{},
+		&model.AnnouncementRead{},
+		&model.MessageTemplate{},
+		&model.MessageStatistics{},
+		&model.MessageSendLog{},
 		// 动态数据管理平台相关表
 		&model.DynamicTable{},
 		&model.DynamicField{},
@@ -39,4 +44,7 @@ func Migrate() {
 	
 	// 初始化动态数据管理平台的默认数据
 	InitDynamicTables()
+	
+	// 初始化消息系统增强功能表和数据
+	InitMessageSystem()
 }

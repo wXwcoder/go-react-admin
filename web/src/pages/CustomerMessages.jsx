@@ -1,13 +1,40 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Button, Card, message, Row, Col, Typography, Badge, Tag, Space, Modal, Form, Input, Select } from 'antd';
-import { EyeOutlined, CheckOutlined, DeleteOutlined, MailOutlined } from '@ant-design/icons';
-import { customerMessageApi } from '../api/customer';
+import { Table, Button, Card, message, Row, Col, Typography, Badge, Tag, Space, Modal, Form, Input, Select, Tabs, List, Avatar, Empty, Spin } from 'antd';
+import { EyeOutlined, CheckOutlined, DeleteOutlined, MailOutlined, NotificationOutlined } from '@ant-design/icons';
+import customerMessageApi from '../api/customer/message';
+import { formatDateTime } from '../utils/date';
+import './CustomerMessages.less';
 
 const { Title, Text } = Typography;
 const { Option } = Select;
 
 const CustomerMessages = () => {
+  // 获取公告类型标签配置
+  const getTypeTag = (type) => {
+    const typeMap = {
+      'notice': { text: '通知', color: 'blue' },
+      'maintenance': { text: '维护', color: 'orange' },
+      'update': { text: '更新', color: 'green' },
+      'system': { text: '系统', color: 'purple' },
+      'urgent': { text: '紧急', color: 'red' }
+    };
+    return typeMap[type] || { text: '其他', color: 'default' };
+  };
+
+  // 获取优先级对应的颜色
+  const getPriorityColor = (priority) => {
+    const priorityMap = {
+      1: '#52c41a', // 低优先级 - 绿色
+      2: '#faad14', // 中优先级 - 橙色
+      3: '#f5222d', // 高优先级 - 红色
+      4: '#722ed1', // 紧急优先级 - 紫色
+      5: '#eb2f96'  // 最高优先级 - 粉色
+    };
+    return priorityMap[priority] || '#1890ff';
+  };
+  const [activeTab, setActiveTab] = useState('announcements');
   const [messages, setMessages] = useState([]);
+  const [announcements, setAnnouncements] = useState([]);
   const [loading, setLoading] = useState(false);
   const [pagination, setPagination] = useState({
     current: 1,
@@ -15,29 +42,73 @@ const CustomerMessages = () => {
     total: 0
   });
   const [unreadCount, setUnreadCount] = useState(0);
+  const [unreadAnnouncements, setUnreadAnnouncements] = useState(0);
   const [detailModalVisible, setDetailModalVisible] = useState(false);
   const [selectedMessage, setSelectedMessage] = useState(null);
+  const [announcementModal, setAnnouncementModal] = useState({ visible: false, data: null });
+  const [selectedRowKeys, setSelectedRowKeys] = useState([]);
 
   useEffect(() => {
-    fetchMessages();
+    if (activeTab === 'announcements') {
+      fetchAnnouncements();
+    } else {
+      fetchMessages();
+    }
     fetchUnreadCount();
-  }, []);
+    fetchAnnouncementsUnreadCount();
+  }, [activeTab]);
+
+  // 获取未读公告数量
+  const fetchAnnouncementsUnreadCount = async () => {
+    try {
+      const response = await customerMessageApi.announcement.getUnreadCount();
+      setUnreadAnnouncements(response.data.data?.count || 0);
+    } catch (error) {
+      console.error('获取未读公告数量失败', error);
+    }
+  };
+
+  // 获取公告列表
+  const fetchAnnouncements = async () => {
+    try {
+      setLoading(true);
+      
+      // 获取所有公告（包括已读）
+      const allResponse = await customerMessageApi.announcement.getList({
+        page: 1,
+        page_size: 100
+      });
+      console.log('获取所有公告响应:', allResponse);
+      // 获取未读公告数量
+      const unreadResponse = await customerMessageApi.announcement.getUnreadCount();
+      console.log('获取未读公告数量响应:', unreadResponse); 
+      setAnnouncements(allResponse?.data?.list || []);
+      setUnreadAnnouncements(unreadResponse?.data?.count || 0);
+    } catch (error) {
+      message.error('获取公告失败');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const fetchMessages = async (params = {}) => {
     setLoading(true);
     try {
-      const response = await customerMessageApi.getMessages({
-        page: pagination.current,
-        page_size: pagination.pageSize,
+      const response = await customerMessageApi.message.getList({
+        page: params.page || pagination.current,
+        page_size: params.page_size || pagination.pageSize,
         ...params
       });
-      
-      const { list, total } = response.data.data;
+      console.log('获取消息列表响应:', response);
+
+      const { list, total } = response.data;
       setMessages(list);
-      setPagination({
-        ...pagination,
-        total
-      });
+      setPagination(prev => ({
+        ...prev,
+        total,
+        current: params.page || prev.current,
+        pageSize: params.page_size || prev.pageSize
+      }));
     } catch (error) {
       message.error('获取消息列表失败');
     } finally {
@@ -47,24 +118,25 @@ const CustomerMessages = () => {
 
   const fetchUnreadCount = async () => {
     try {
-      const response = await customerMessageApi.getUnreadCount();
+      const response = await customerMessageApi.message.getUnreadCount();
       setUnreadCount(response.data.data?.count || 0);
     } catch (error) {
       console.error('获取未读消息数量失败', error);
     }
   };
 
-  const handleTableChange = (pagination) => {
-    setPagination(pagination);
-    fetchMessages({
-      page: pagination.current,
-      page_size: pagination.pageSize
-    });
+  const handleTableChange = (paginationConfig) => {
+    if (activeTab === 'messages') {
+      fetchMessages({
+        page: paginationConfig.current,
+        page_size: paginationConfig.pageSize
+      });
+    }
   };
 
   const handleViewDetail = async (record) => {
     try {
-      const response = await customerMessageApi.getMessageDetail(record.id);
+      const response = await customerMessageApi.message.getDetail(record.id);
       setSelectedMessage(response.data.data);
       setDetailModalVisible(true);
       
@@ -79,10 +151,17 @@ const CustomerMessages = () => {
 
   const handleMarkAsRead = async (id) => {
     try {
-      await customerMessageApi.markAsRead(id);
-      message.success('标记已读成功');
-      fetchMessages();
-      fetchUnreadCount();
+      if (activeTab === 'announcements') {
+        await customerMessageApi.announcement.markRead(id);
+        message.success('公告标记已读成功');
+        fetchAnnouncements();
+        fetchAnnouncementsUnreadCount();
+      } else {
+        await customerMessageApi.message.markRead(id);
+        message.success('消息标记已读成功');
+        fetchMessages();
+        fetchUnreadCount();
+      }
     } catch (error) {
       message.error('标记已读失败');
     }
@@ -90,10 +169,17 @@ const CustomerMessages = () => {
 
   const handleMarkAsReadBatch = async (ids) => {
     try {
-      await customerMessageApi.markAsReadBatch({ message_ids: ids });
-      message.success('批量标记已读成功');
-      fetchMessages();
-      fetchUnreadCount();
+      if (activeTab === 'announcements') {
+        await customerMessageApi.announcement.markBatchRead(ids);
+        message.success('公告批量标记已读成功');
+        fetchAnnouncements();
+        fetchAnnouncementsUnreadCount();
+      } else {
+        await customerMessageApi.message.markBatchRead(ids);
+        message.success('消息批量标记已读成功');
+        fetchMessages();
+        fetchUnreadCount();
+      }
     } catch (error) {
       message.error('批量标记已读失败');
     }
@@ -107,7 +193,7 @@ const CustomerMessages = () => {
       cancelText: '取消',
       onOk: async () => {
         try {
-          await customerMessageApi.deleteMessage(id);
+          await customerMessageApi.message.delete(id);
           message.success('删除成功');
           fetchMessages();
           fetchUnreadCount();
@@ -141,7 +227,10 @@ const CustomerMessages = () => {
           'system': { color: 'blue', text: '系统消息' },
           'notification': { color: 'green', text: '通知公告' },
           'warning': { color: 'orange', text: '警告消息' },
-          'error': { color: 'red', text: '错误消息' }
+          'error': { color: 'red', text: '错误消息' },
+          'notice': { color: 'green', text: '通知' },
+          'maintenance': { color: 'orange', text: '维护' },
+          'update': { color: 'purple', text: '更新' }
         };
         const config = typeMap[type] || { color: 'default', text: '未知' };
         return <Tag color={config.color}>{config.text}</Tag>;
@@ -152,13 +241,9 @@ const CustomerMessages = () => {
       dataIndex: 'priority',
       key: 'priority',
       render: (priority) => {
-        const priorityMap = {
-          'low': { color: 'blue', text: '低' },
-          'medium': { color: 'orange', text: '中' },
-          'high': { color: 'red', text: '高' }
-        };
-        const config = priorityMap[priority] || { color: 'default', text: '未知' };
-        return <Tag color={config.color}>{config.text}</Tag>;
+        const color = priority >= 8 ? 'red' : priority >= 5 ? 'orange' : 'blue';
+        const text = priority >= 8 ? '高' : priority >= 5 ? '中' : '低';
+        return <Tag color={color}>{text}</Tag>;
       }
     },
     {
@@ -212,101 +297,155 @@ const CustomerMessages = () => {
   ];
 
   const rowSelection = {
+    selectedRowKeys,
     onChange: (selectedRowKeys, selectedRows) => {
+      setSelectedRowKeys(selectedRowKeys);
       console.log(`selectedRowKeys: ${selectedRowKeys}`, 'selectedRows: ', selectedRows);
     },
     getCheckboxProps: (record) => ({
-      disabled: record.name === 'Disabled User',
-      name: record.name,
+      disabled: false,
+      name: record.id,
     }),
   };
 
   return (
     <div style={{ padding: '24px' }}>
-      <Row justify="space-between" align="middle" style={{ marginBottom: '24px' }}>
-        <Col>
-          <Title level={2}>
-            消息中心 
-            {unreadCount > 0 && (
-              <Badge 
-                count={unreadCount} 
-                style={{ marginLeft: '8px' }} 
-                overflowCount={99}
-              />
-            )}
-          </Title>
-        </Col>
-        <Col>
+      <Title level={2}>消息中心</Title>
+      <Tabs 
+        activeKey={activeTab} 
+        onChange={setActiveTab}
+        tabBarExtraContent={
           <Space>
             <Button 
               type="primary" 
               icon={<CheckOutlined />}
               onClick={() => {
-                const unreadMessages = messages.filter(msg => !msg.is_read);
-                if (unreadMessages.length > 0) {
-                  handleMarkAsReadBatch(unreadMessages.map(msg => msg.id));
+                if (activeTab === 'announcements') {
+                  const unreadAnnouncementsList = announcements.filter(ann => !ann.is_read);
+                  if (unreadAnnouncementsList.length > 0) {
+                    handleMarkAsReadBatch(unreadAnnouncementsList.map(ann => ann.id));
+                  }
+                } else {
+                  const unreadMessagesList = messages.filter(msg => !msg.is_read);
+                  if (unreadMessagesList.length > 0) {
+                    handleMarkAsReadBatch(unreadMessagesList.map(msg => msg.id));
+                  }
                 }
               }}
-              disabled={messages.filter(msg => !msg.is_read).length === 0}
+              disabled={activeTab === 'announcements' ? 
+                announcements.filter(ann => !ann.is_read).length === 0 :
+                messages.filter(msg => !msg.is_read).length === 0
+              }
             >
               全部已读
             </Button>
           </Space>
-        </Col>
-      </Row>
-
-      <Card>
-        <Table
-          columns={columns}
-          dataSource={messages}
-          rowKey="id"
-          loading={loading}
-          pagination={pagination}
-          onChange={handleTableChange}
-          rowSelection={rowSelection}
-        />
-      </Card>
-
-      <Modal
-        title="消息详情"
-        open={detailModalVisible}
-        onCancel={() => setDetailModalVisible(false)}
-        footer={[
-          <Button key="close" onClick={() => setDetailModalVisible(false)}>
-            关闭
-          </Button>
+        }
+        items={[
+          {
+            key: 'announcements',
+            label: (
+              <span>
+                <NotificationOutlined />
+                公告
+                {unreadAnnouncements > 0 && (
+                  <Badge count={unreadAnnouncements} size="small" style={{ marginLeft: 8 }} />
+                )}
+              </span>
+            ),
+            children: (
+              <Spin spinning={loading}>
+                <List
+                  itemLayout="horizontal"
+                  dataSource={announcements}
+                  renderItem={(item) => (
+                    <List.Item
+                      className={`message-item ${!item.is_read ? 'unread' : ''}`}
+                      actions={[
+                        <Button 
+                          type="link" 
+                          size="small" 
+                          icon={<EyeOutlined />}
+                          onClick={() => {
+                            setAnnouncementModal({ visible: true, data: item });
+                            if (!item.is_read) {
+                              handleMarkAsRead(item.id);
+                            }
+                          }}
+                        >
+                          查看
+                        </Button>
+                      ]}
+                    >
+                      <List.Item.Meta
+                        avatar={
+                          <Avatar 
+                            size="large" 
+                            icon={<NotificationOutlined />} 
+                            style={{ backgroundColor: getPriorityColor(item.priority) }} 
+                          />
+                        }
+                        title={
+                          <Space>
+                            <span>{item.title}</span>
+                            <Tag color={getTypeTag(item.type).color}>
+                              {getTypeTag(item.type).text}
+                            </Tag>
+                            <Tag color={getPriorityColor(item.priority)}>
+                              优先级 {item.priority}
+                            </Tag>
+                          </Space>
+                        }
+                        description={
+                          <div>
+                            <div className="message-content">{item.content}</div>
+                            <div className="message-time">
+                              {formatDateTime(item.created_at)}
+                              {item.expired_at && (
+                                <span style={{ marginLeft: 10, color: '#ff4d4f' }}>
+                                  过期时间: {formatDateTime(item.expired_at)}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        }
+                      />
+                    </List.Item>
+                  )}
+                  locale={{
+                    emptyText: <Empty description="暂无公告" />
+                  }}
+                />
+              </Spin>
+            )
+          },
+          {
+            key: 'messages',
+            label: (
+              <span>
+                <MailOutlined />
+                消息
+                {unreadCount > 0 && (
+                  <Badge count={unreadCount} size="small" style={{ marginLeft: 8 }} />
+                )}
+              </span>
+            ),
+            children: (
+              <Card>
+                <Table
+                  columns={columns}
+                  dataSource={messages}
+                  rowKey="id"
+                  loading={loading}
+                  pagination={pagination}
+                  onChange={handleTableChange}
+                  rowSelection={rowSelection}
+                />
+              </Card>
+            )
+          }
         ]}
-        width={600}
-      >
-        {selectedMessage && (
-          <div>
-            <Title level={4}>{selectedMessage.title}</Title>
-            <Space style={{ marginBottom: '16px' }}>
-              <Tag color={selectedMessage.type === 'system' ? 'blue' : 'green'}>
-                {selectedMessage.type === 'system' ? '系统消息' : '通知公告'}
-              </Tag>
-              <Tag color={selectedMessage.priority === 'high' ? 'red' : selectedMessage.priority === 'medium' ? 'orange' : 'blue'}>
-                {selectedMessage.priority === 'high' ? '高优先级' : selectedMessage.priority === 'medium' ? '中优先级' : '低优先级'}
-              </Tag>
-            </Space>
-            <div style={{ marginBottom: '16px' }}>
-              <Text strong>发送时间：</Text>
-              <Text>{new Date(selectedMessage.created_at).toLocaleString()}</Text>
-            </div>
-            <div style={{ marginBottom: '16px' }}>
-              <Text strong>内容：</Text>
-            </div>
-            <div style={{ 
-              backgroundColor: '#f5f5f5', 
-              padding: '16px', 
-              borderRadius: '6px',
-              whiteSpace: 'pre-wrap'
-            }}>
-              {selectedMessage.content}
-            </div>
-          </div>
-        )}
-      </Modal>
+      />
     </div>
   );
 };

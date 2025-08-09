@@ -79,7 +79,7 @@ func (api *CustomerMessageAPI) GetMessageDetail(c *gin.Context) {
 	}
 
 	messageService := &service.CustomerMessageService{}
-	response, err := messageService.GetCustomerMessageDetail(customerID.(uint64), messageID)
+	response, err := messageService.GetCustomerMessageDetail(uint64(customerID.(uint)), messageID)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 		return
@@ -113,7 +113,7 @@ func (api *CustomerMessageAPI) MarkMessageAsRead(c *gin.Context) {
 	}
 
 	messageService := &service.CustomerMessageService{}
-	if err := messageService.MarkMessageAsRead(customerID.(uint64), messageID); err != nil {
+	if err := messageService.MarkMessageAsRead(uint64(customerID.(uint)), messageID); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -145,7 +145,7 @@ func (api *CustomerMessageAPI) MarkMessagesAsReadBatch(c *gin.Context) {
 	}
 
 	messageService := &service.CustomerMessageService{}
-	if err := messageService.MarkMessagesAsReadBatch(customerID.(uint64), req.MessageIDs); err != nil {
+	if err := messageService.MarkMessagesAsReadBatch(uint64(customerID.(uint)), req.MessageIDs); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -204,12 +204,193 @@ func (api *CustomerMessageAPI) DeleteMessage(c *gin.Context) {
 	}
 
 	messageService := &service.CustomerMessageService{}
-	if err := messageService.DeleteCustomerMessage(customerID.(uint64), messageID); err != nil {
+	if err := messageService.DeleteCustomerMessage(uint64(customerID.(uint)), messageID); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "删除成功"})
+}
+
+// GetCustomerAnnouncements 获取客户公告列表
+// @Summary 获取客户公告列表
+// @Description 获取当前登录客户的公告列表
+// @Tags 客户公告
+// @Accept json
+// @Produce json
+// @Param page query int false "页码" default(1)
+// @Param page_size query int false "每页数量" default(10) minimum(1) maximum(100)
+// @Param is_read query bool false "是否已读"
+// @Success 200 {object} service.CustomerAnnouncementListResponse
+// @Router /api/v1/customer/announcements [get]
+// @Security CustomerJWTAuth
+func (api *CustomerMessageAPI) GetCustomerAnnouncements(c *gin.Context) {
+	customerID, exists := c.Get("customer_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "未授权访问"})
+		return
+	}
+
+	var req struct {
+		Page     int  `form:"page" binding:"min=1"`
+		PageSize int  `form:"page_size" binding:"min=1,max=100"`
+		IsRead   *bool `form:"is_read"`
+	}
+	if err := c.ShouldBindQuery(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if req.Page == 0 {
+		req.Page = 1
+	}
+	if req.PageSize == 0 {
+		req.PageSize = 10
+	}
+
+	announcementService := &service.AnnouncementService{}
+	response, err := announcementService.GetCustomerAnnouncements(uint64(customerID.(uint)), &service.CustomerAnnouncementListRequest{
+		Page:     req.Page,
+		PageSize: req.PageSize,
+		IsRead:   req.IsRead,
+	})
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"data": response})
+}
+
+// GetCustomerAnnouncementDetail 获取客户公告详情
+// @Summary 获取客户公告详情
+// @Description 获取指定公告的详细信息
+// @Tags 客户公告
+// @Accept json
+// @Produce json
+// @Param id path int true "公告ID"
+// @Success 200 {object} service.CustomerAnnouncementDetailResponse
+// @Router /api/v1/customer/announcements/{id} [get]
+// @Security CustomerJWTAuth
+func (api *CustomerMessageAPI) GetCustomerAnnouncementDetail(c *gin.Context) {
+	customerID, exists := c.Get("customer_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "未授权访问"})
+		return
+	}
+
+	announcementIDStr := c.Param("id")
+	announcementID, err := strconv.ParseUint(announcementIDStr, 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "无效的公告ID"})
+		return
+	}
+
+	announcementService := &service.AnnouncementService{}
+	detail, err := announcementService.GetCustomerAnnouncementDetail(uint64(customerID.(uint)), announcementID)
+	if err != nil {
+		if err.Error() == "公告不存在" {
+			c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		}
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"data": detail})
+}
+
+// MarkAnnouncementRead 标记公告为已读
+// @Summary 标记公告为已读
+// @Description 将指定公告标记为已读
+// @Tags 客户公告
+// @Accept json
+// @Produce json
+// @Param id path int true "公告ID"
+// @Success 200 {object} gin.H{"message":"标记成功"}
+// @Router /api/v1/customer/announcements/{id}/read [post]
+// @Security CustomerJWTAuth
+func (api *CustomerMessageAPI) MarkAnnouncementRead(c *gin.Context) {
+	customerID, exists := c.Get("customer_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "未授权访问"})
+		return
+	}
+
+	announcementIDStr := c.Param("id")
+	announcementID, err := strconv.ParseUint(announcementIDStr, 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "无效的公告ID"})
+		return
+	}
+
+	announcementService := &service.AnnouncementService{}
+	if err := announcementService.MarkAnnouncementRead(uint64(customerID.(uint)), announcementID); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "标记成功"})
+}
+
+// MarkAnnouncementsBatchRead 批量标记公告为已读
+// @Summary 批量标记公告为已读
+// @Description 批量将公告标记为已读
+// @Tags 客户公告
+// @Accept json
+// @Produce json
+// @Param announcement_ids body struct{IDs []uint64} true "公告ID列表"
+// @Success 200 {object} gin.H{"message":"批量标记成功"}
+// @Router /api/v1/customer/announcements/batch-read [post]
+// @Security CustomerJWTAuth
+func (api *CustomerMessageAPI) MarkAnnouncementsBatchRead(c *gin.Context) {
+	customerID, exists := c.Get("customer_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "未授权访问"})
+		return
+	}
+
+	var req struct {
+		IDs []uint64 `json:"ids" binding:"required"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	announcementService := &service.AnnouncementService{}
+	if err := announcementService.MarkAnnouncementsBatchRead(uint64(customerID.(uint)), req.IDs); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "批量标记成功"})
+}
+
+// GetUnreadAnnouncementCount 获取未读公告数量
+// @Summary 获取未读公告数量
+// @Description 获取当前登录客户的未读公告数量
+// @Tags 客户公告
+// @Accept json
+// @Produce json
+// @Success 200 {object} gin.H{"count":int}
+// @Router /api/v1/customer/announcements/unread-count [get]
+// @Security CustomerJWTAuth
+func (api *CustomerMessageAPI) GetUnreadAnnouncementCount(c *gin.Context) {
+	customerID, exists := c.Get("customer_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "未授权访问"})
+		return
+	}
+
+	announcementService := &service.AnnouncementService{}
+	count, err := announcementService.GetUnreadAnnouncementCount(uint64(customerID.(uint)))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"data": gin.H{"count": count}})
 }
 
 // AdminCreateMessage 管理员创建消息

@@ -118,6 +118,13 @@ func InitApiRoutes(r *gin.Engine) {
 		customerProtected.PUT("/messages/batch-read", api.CustomerMessageApi.MarkMessagesAsReadBatch)
 		customerProtected.GET("/messages/unread-count", api.CustomerMessageApi.GetUnreadCount)
 		customerProtected.DELETE("/messages/:id", api.CustomerMessageApi.DeleteMessage)
+
+		// 第三方客户公告路由
+		customerProtected.GET("/announcements", api.CustomerMessageApi.GetCustomerAnnouncements)
+		customerProtected.GET("/announcements/:id", api.CustomerMessageApi.GetCustomerAnnouncementDetail)
+		customerProtected.POST("/announcements/:id/read", api.CustomerMessageApi.MarkAnnouncementRead)
+		customerProtected.POST("/announcements/batch-read", api.CustomerMessageApi.MarkAnnouncementsBatchRead)
+		customerProtected.GET("/announcements/unread-count", api.CustomerMessageApi.GetUnreadAnnouncementCount)
 	}
 
 	// 需要权限验证的路由
