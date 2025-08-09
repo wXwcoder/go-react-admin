@@ -29,7 +29,7 @@ const CustomerLayout = () => {
     try {
       const token = localStorage.getItem('customer_token');
       if (!token) {
-        //navigate('/customer/login');
+        navigate('/customer/login');
         return;
       }
 
@@ -45,7 +45,7 @@ const CustomerLayout = () => {
       console.error('初始化客户信息失败:', error);
       if (error.response?.status === 401) {
         localStorage.removeItem('customer_token');
-        //navigate('/customer/login');
+        navigate('/customer/login');
       } else {
         message.error('获取客户信息失败');
       }
@@ -62,7 +62,7 @@ const CustomerLayout = () => {
     } finally {
       localStorage.removeItem('customer_token');
       localStorage.removeItem('customer_info');
-      //navigate('/customer/login');
+      navigate('/customer/login');
       message.success('已退出登录');
     }
   };

@@ -37,7 +37,7 @@ customerApi.interceptors.response.use(
           localStorage.removeItem('customer_info');
           message.error('登录已过期，请重新登录');
           setTimeout(() => {
-            //window.location.href = '/customer/login';
+            window.location.href = '/customer/login';
           }, 1000);
           break;
         case 403:

@@ -161,6 +161,55 @@ export const staticRoutes = [
     }
   },
   
+  // 消息管理路由
+  {
+    path: '/messages',
+    element: <Navigate to="/messages/list" replace />,
+    meta: {
+      title: '消息管理',
+      hidden: true
+    }
+  },
+  {
+    path: '/messages/list',
+    element: (
+      <PermissionWrapper permission={{ resource: 'message', action: 'read' }}>
+        {React.createElement(lazy(() => import('../pages/admin/message/MessageManagement')))}
+      </PermissionWrapper>
+    ),
+    meta: {
+      title: '消息管理',
+      icon: 'fas fa-envelope',
+      keepAlive: true
+    }
+  },
+  {
+    path: '/messages/announcements',
+    element: (
+      <PermissionWrapper permission={{ resource: 'announcement', action: 'read' }}>
+        {React.createElement(lazy(() => import('../pages/admin/message/AnnouncementManagement')))}
+      </PermissionWrapper>
+    ),
+    meta: {
+      title: '公告管理',
+      icon: 'fas fa-bullhorn',
+      keepAlive: true
+    }
+  },
+  {
+    path: '/messages/customer',
+    element: (
+      <PermissionWrapper permission={{ resource: 'customer_message', action: 'read' }}>
+        {React.createElement(lazy(() => import('../pages/admin/message/CustomerMessageManagement')))}
+      </PermissionWrapper>
+    ),
+    meta: {
+      title: '客户消息',
+      icon: 'fas fa-comments',
+      keepAlive: true
+    }
+  },
+
   // 第三方客户管理路由
   {
     path: '/customers',
