@@ -28,7 +28,6 @@ type Customer struct {
 	DeletedAt    *time.Time     `gorm:"type:datetime;index" json:"deleted_at,omitempty"`
 
 	// 关联关系
-	CustomerMessages []CustomerMessage `gorm:"foreignKey:CustomerID" json:"customer_messages,omitempty"`
 }
 
 func (Customer) TableName() string {

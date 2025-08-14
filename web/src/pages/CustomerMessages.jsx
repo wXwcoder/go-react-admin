@@ -79,13 +79,48 @@ const CustomerMessages = () => {
         page_size: 100
       });
       console.log('获取所有公告响应:', allResponse);
+      
       // 获取未读公告数量
       const unreadResponse = await customerMessageApi.announcement.getUnreadCount();
       console.log('获取未读公告数量响应:', unreadResponse); 
-      setAnnouncements(allResponse?.data?.list || []);
-      setUnreadAnnouncements(unreadResponse?.data?.count || 0);
+      
+      // 兼容不同的数据格式
+      let list = [];
+      let unreadCount = 0;
+      
+      if (allResponse.data?.data) {
+        // 格式1: { data: { list: [...], total: ... } }
+        if (allResponse.data.data.list !== undefined) {
+          list = allResponse.data.data.list;
+        } 
+        // 格式2: { data: [...] }
+        else if (Array.isArray(allResponse.data.data)) {
+          list = allResponse.data.data;
+        }
+      } else if (Array.isArray(allResponse.data)) {
+        // 格式3: 直接返回数组
+        list = allResponse.data;
+      }
+
+      if (unreadResponse.data?.data) {
+        unreadCount = unreadResponse.data.data.count || unreadResponse.data.data.total || 0;
+      } else {
+        unreadCount = unreadResponse.data?.count || 0;
+      }
+
+      console.log('解析后的公告列表:', list, '未读数量:', unreadCount);
+
+      if (!Array.isArray(list)) {
+        console.warn('公告列表数据格式异常，使用空数组');
+        list = [];
+      }
+
+      setAnnouncements(list);
+      setUnreadAnnouncements(unreadCount);
     } catch (error) {
+      console.error('获取公告失败:', error);
       message.error('获取公告失败');
+      setAnnouncements([]);
     } finally {
       setLoading(false);
     }
@@ -94,23 +129,65 @@ const CustomerMessages = () => {
   const fetchMessages = async (params = {}) => {
     setLoading(true);
     try {
+      // 调试：获取当前客户信息
+      const customerInfo = JSON.parse(localStorage.getItem('customer_info') || '{}');
+      console.log('当前客户信息:', customerInfo);
+      console.log('当前客户ID:', customerInfo.id);
+
       const response = await customerMessageApi.message.getList({
         page: params.page || pagination.current,
         page_size: params.page_size || pagination.pageSize,
         ...params
       });
-      console.log('获取消息列表响应:', response);
 
-      const { list, total } = response.data;
+      // 兼容不同的数据格式
+      let list = [];
+      let total = 0;
+      
+      if (response.data?.data) {
+        // 格式1: { data: { list: [...], total: ... } }
+        if (response.data.data.list !== undefined) {
+          list = response.data.data.list;
+          total = response.data.data.total || 0;
+        } 
+        // 格式2: { data: [...] }
+        else if (Array.isArray(response.data.data)) {
+          list = response.data.data;
+          total = list.length;
+        }
+      } else if (Array.isArray(response.data)) {
+        // 格式3: 直接返回数组
+        list = response.data;
+        total = list.length;
+      }
+
+      console.log('解析后的消息列表:', list, '总数:', total);
+
+      // 如果消息为空，给出提示
+      if (total === 0) {
+        console.log('💡 消息列表为空，可能原因：');
+        console.log('1. 当前客户没有关联的消息');
+        console.log('2. 消息还未发送给该客户');
+        console.log('3. 客户ID可能不正确:', customerInfo.id);
+      }
+
+      if (!Array.isArray(list)) {
+        console.warn('消息列表数据格式异常，使用空数组');
+        list = [];
+        total = 0;
+      }
+
       setMessages(list);
       setPagination(prev => ({
         ...prev,
-        total,
+        total: total,
         current: params.page || prev.current,
         pageSize: params.page_size || prev.pageSize
       }));
     } catch (error) {
+      console.error('获取消息列表失败:', error);
       message.error('获取消息列表失败');
+      setMessages([]);
     } finally {
       setLoading(false);
     }

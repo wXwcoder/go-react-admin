@@ -1,6 +1,7 @@
 package api
 
 import (
+	"fmt"
 	"go-react-admin/service"
 	"net/http"
 	"strconv"
@@ -156,6 +157,7 @@ func (api *CustomerAPI) GetCustomerList(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+	fmt.Printf("GetCustomerList:%+v \n", response)
 
 	c.JSON(http.StatusOK, gin.H{"data": response})
 }

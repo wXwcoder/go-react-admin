@@ -68,7 +68,7 @@ const CustomerMessageManagement = () => {
       });
       setCustomers(response.data.list);
     } catch (error) {
-      message.error('获取客户列表失败');
+      message.error('获取客户列表失败2');
     } finally {
       setCustomerLoading(false);
     }

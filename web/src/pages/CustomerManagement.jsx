@@ -27,20 +27,20 @@ const CustomerManagement = () => {
   const fetchCustomers = async (params = {}) => {
     setLoading(true);
     try {
-      const response = await customerManagementApi.getCustomerList({
+      const response = await customerManagementApi.getCustomers({
         page: pagination.current,
         page_size: pagination.pageSize,
         ...params
       });
-      
-      const { data, total } = response.data;
-      setCustomers(data);
+      const { list, total } = response.data.data;
+      setCustomers(list);
       setPagination({
         ...pagination,
         total
       });
     } catch (error) {
-      message.error('获取客户列表失败');
+      message.error('获取客户列表失败1:'+error.message);
+
     } finally {
       setLoading(false);
     }

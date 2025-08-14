@@ -36,7 +36,7 @@ request.interceptors.response.use(
         case 401:
           // 清除token并跳转到登录页
           localStorage.removeItem('token');
-          window.location.href = '/login';
+          //window.location.href = '/login';
           break;
         case 403:
           // 权限不足

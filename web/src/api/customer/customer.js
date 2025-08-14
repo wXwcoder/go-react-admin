@@ -5,7 +5,7 @@ const customerAPI = {
   // 获取客户列表
   getCustomerList: (params) => {
     return request({
-      url: '/api/v1/customer/customers',
+      url: '/api/v1/admin/customers',
       method: 'get',
       params,
     });
@@ -14,7 +14,7 @@ const customerAPI = {
   // 获取客户详情
   getCustomerDetail: (id) => {
     return request({
-      url: `/api/v1/customer/customers/${id}`,
+      url: `/api/v1/admin/customers/${id}`,
       method: 'get',
     });
   },
@@ -22,7 +22,7 @@ const customerAPI = {
   // 创建客户
   createCustomer: (data) => {
     return request({
-      url: '/api/v1/customer/customers',
+      url: '/api/v1/admin/customers',
       method: 'post',
       data,
     });
@@ -31,7 +31,7 @@ const customerAPI = {
   // 更新客户
   updateCustomer: (id, data) => {
     return request({
-      url: `/api/v1/customer/customers/${id}`,
+      url: `/api/v1/admin/customers/${id}`,
       method: 'put',
       data,
     });
@@ -40,7 +40,7 @@ const customerAPI = {
   // 删除客户
   deleteCustomer: (id) => {
     return request({
-      url: `/api/v1/customer/customers/${id}`,
+      url: `/api/v1/admin/customers/${id}`,
       method: 'delete',
     });
   },
@@ -48,8 +48,9 @@ const customerAPI = {
   // 获取客户统计
   getCustomerStats: () => {
     return request({
-      url: '/api/v1/customer/customers/stats',
+      url: '/api/v1/admin/customers',
       method: 'get',
+      params: { page: 1, page_size: 1 }
     });
   },
 
