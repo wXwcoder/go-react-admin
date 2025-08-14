@@ -211,61 +211,7 @@ func (api *AdminMessageAPI) CancelMessage(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "撤回成功"})
 }
 
-// GetCustomerMessages 获取客户专属消息列表（管理员）
-// @Summary 获取客户专属消息列表
-// @Description 获取发送给客户的专属消息列表
-// @Tags 管理员消息管理
-// @Accept json
-// @Produce json
-// @Param page query int false "页码" default(1)
-// @Param page_size query int false "每页数量" default(10) minimum(1) maximum(100)
-// @Param customer_id query int false "客户ID"
-// @Param is_read query bool false "是否已读"
-// @Success 200 {object} service.CustomerMessageAdminListResponse
-// @Router /api/v1/admin/customer-messages [get]
-// @Security JWTAuth
-func (api *AdminMessageAPI) GetCustomerMessages(c *gin.Context) {
-	var req service.CustomerMessageAdminListRequest
-	if err := c.ShouldBindQuery(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
 
-	messageService := &service.MessageService{}
-	response, err := messageService.GetCustomerMessageAdminList(&req)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{"data": response})
-}
-
-// SendCustomerMessage 发送客户专属消息（管理员）
-// @Summary 发送客户专属消息
-// @Description 向指定客户发送专属消息
-// @Tags 管理员消息管理
-// @Accept json
-// @Produce json
-// @Param message body service.CustomerMessageSendRequest true "消息信息"
-// @Success 200 {object} gin.H{"message":"发送成功"}
-// @Router /api/v1/admin/customer-messages/send [post]
-// @Security JWTAuth
-func (api *AdminMessageAPI) SendCustomerMessage(c *gin.Context) {
-	var req service.CustomerMessageSendRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	messageService := &service.MessageService{}
-	if err := messageService.SendCustomerMessage(&req); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{"message": "发送成功"})
-}
 
 // GetAnnouncementList 获取公告列表（管理员）
 // @Summary 获取公告列表
@@ -438,4 +384,72 @@ func (api *AdminMessageAPI) DeleteAnnouncement(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "删除成功"})
+}
+
+// GetAnnouncementDetail 获取公告详情（管理员）
+// @Summary 获取公告详情
+// @Description 获取指定公告的详细信息
+// @Tags 管理员公告管理
+// @Accept json
+// @Produce json
+// @Param id path int true "公告ID"
+// @Success 200 {object} service.AnnouncementDetailResponse
+// @Router /api/v1/admin/announcements/{id} [get]
+// @Security JWTAuth
+func (api *AdminMessageAPI) GetAnnouncementDetail(c *gin.Context) {
+	announcementIDStr := c.Param("id")
+	announcementID, err := strconv.ParseUint(announcementIDStr, 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "无效的公告ID"})
+		return
+	}
+
+	announcementService := &service.AnnouncementService{}
+	response, err := announcementService.GetAnnouncementDetail(announcementID)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"data": response})
+}
+
+// GetAnnouncementStats 获取公告统计信息（管理员）
+// @Summary 获取公告统计信息
+// @Description 获取系统公告的统计信息，包括总数、各状态数量、各类型数量
+// @Tags 管理员公告管理
+// @Accept json
+// @Produce json
+// @Success 200 {object} service.AnnouncementStatsResponse
+// @Router /api/v1/admin/announcements/stats [get]
+// @Security JWTAuth
+func (api *AdminMessageAPI) GetAnnouncementStats(c *gin.Context) {
+	announcementService := &service.AnnouncementService{}
+	stats, err := announcementService.GetAnnouncementStats()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"data": stats})
+}
+
+// GetMessageStats 获取消息统计信息（管理员）
+// @Summary 获取消息统计信息
+// @Description 获取系统消息的统计信息，包括总数、各状态数量、各类型数量
+// @Tags 管理员消息管理
+// @Accept json
+// @Produce json
+// @Success 200 {object} service.MessageStatsResponse
+// @Router /api/v1/admin/messages/stats [get]
+// @Security JWTAuth
+func (api *AdminMessageAPI) GetMessageStats(c *gin.Context) {
+	messageService := &service.MessageService{}
+	stats, err := messageService.GetMessageStats()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"data": stats})
 }

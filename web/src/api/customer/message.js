@@ -1,10 +1,10 @@
-import request from '../../utils/request';
+import customerApi from '../../utils/customerAuth';
 
 // 客户公告相关API
 export const customerAnnouncementAPI = {
   // 获取客户公告列表
   getList: (params) => {
-    return request({
+    return customerApi({
       url: '/api/v1/customer/announcements',
       method: 'get',
       params
@@ -13,7 +13,7 @@ export const customerAnnouncementAPI = {
 
   // 获取公告详情
   getDetail: (id) => {
-    return request({
+    return customerApi({
       url: `/api/v1/customer/announcements/${id}`,
       method: 'get'
     });
@@ -21,7 +21,7 @@ export const customerAnnouncementAPI = {
 
   // 标记公告为已读
   markRead: (id) => {
-    return request({
+    return customerApi({
       url: `/api/v1/customer/announcements/${id}/read`,
       method: 'post'
     });
@@ -29,7 +29,7 @@ export const customerAnnouncementAPI = {
 
   // 批量标记公告为已读
   markBatchRead: (ids) => {
-    return request({
+    return customerApi({
       url: '/api/v1/customer/announcements/batch-read',
       method: 'post',
       data: { ids }
@@ -38,7 +38,7 @@ export const customerAnnouncementAPI = {
 
   // 获取未读公告数量
   getUnreadCount: () => {
-    return request({
+    return customerApi({
       url: '/api/v1/customer/announcements/unread-count',
       method: 'get'
     });
@@ -49,7 +49,7 @@ export const customerAnnouncementAPI = {
 export const customerMessageAPI = {
   // 获取客户消息列表
   getList: (params) => {
-    return request({
+    return customerApi({
       url: '/api/v1/customer/messages',
       method: 'get',
       params
@@ -58,7 +58,7 @@ export const customerMessageAPI = {
 
   // 获取消息详情
   getDetail: (id) => {
-    return request({
+    return customerApi({
       url: `/api/v1/customer/messages/${id}`,
       method: 'get'
     });
@@ -66,7 +66,7 @@ export const customerMessageAPI = {
 
   // 标记消息为已读
   markRead: (id) => {
-    return request({
+    return customerApi({
       url: `/api/v1/customer/messages/${id}/read`,
       method: 'post'
     });
@@ -74,7 +74,7 @@ export const customerMessageAPI = {
 
   // 批量标记消息为已读
   markBatchRead: (ids) => {
-    return request({
+    return customerApi({
       url: '/api/v1/customer/messages/batch-read',
       method: 'post',
       data: { ids }
@@ -83,7 +83,7 @@ export const customerMessageAPI = {
 
   // 删除消息
   delete: (id) => {
-    return request({
+    return customerApi({
       url: `/api/v1/customer/messages/${id}`,
       method: 'delete'
     });
@@ -91,7 +91,7 @@ export const customerMessageAPI = {
 
   // 批量删除消息
   deleteBatch: (ids) => {
-    return request({
+    return customerApi({
       url: '/api/v1/customer/messages/batch-delete',
       method: 'delete',
       data: { ids }
@@ -100,7 +100,7 @@ export const customerMessageAPI = {
 
   // 获取未读消息数量
   getUnreadCount: () => {
-    return request({
+    return customerApi({
       url: '/api/v1/customer/messages/unread-count',
       method: 'get'
     });

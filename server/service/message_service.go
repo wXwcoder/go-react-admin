@@ -27,6 +27,17 @@ type MessageListResponse struct {
 	Total int64           `json:"total"`
 }
 
+// MessageStatsResponse 消息统计响应
+type MessageStatsResponse struct {
+	TotalCount    int64 `json:"total_count"`    // 总消息数
+	DraftCount    int64 `json:"draft_count"`    // 草稿消息数
+	PublishedCount int64 `json:"published_count"` // 已发布消息数
+	RevokedCount  int64 `json:"revoked_count"`  // 已撤回消息数
+	SystemCount   int64 `json:"system_count"`   // 系统消息数
+	NoticeCount   int64 `json:"notice_count"`   // 通知消息数
+	PrivateCount  int64 `json:"private_count"`  // 私信消息数
+}
+
 // MessageDetailResponse 消息详情响应
 type MessageDetailResponse struct {
 	Message *model.Message `json:"message"`
@@ -52,28 +63,7 @@ type MessageUpdateRequest struct {
 	ExpireTime time.Time `json:"expire_time"`
 }
 
-// CustomerMessageAdminListRequest 管理员获取客户消息列表请求
-type CustomerMessageAdminListRequest struct {
-	Page      int  `form:"page" json:"page" binding:"min=1"`
-	PageSize  int  `form:"page_size" json:"page_size" binding:"min=1,max=100"`
-	CustomerID uint64 `form:"customer_id" json:"customer_id"`
-	IsRead   *bool  `form:"is_read" json:"is_read"`
-}
 
-// CustomerMessageAdminListResponse 管理员获取客户消息列表响应
- type CustomerMessageAdminListResponse struct {
-	List  []model.CustomerMessage `json:"list"`
-	Total int64                   `json:"total"`
-}
-
-// CustomerMessageSendRequest 发送客户消息请求
- type CustomerMessageSendRequest struct {
-	CustomerID uint64 `json:"customer_id" binding:"required"`
-	Title      string `json:"title" binding:"required,max=255"`
-	Content    string `json:"content" binding:"required"`
-	Priority   string `json:"priority" binding:"omitempty,oneof=low medium high"`
-	ExpireTime time.Time `json:"expire_time"`
-}
 
 // GetAdminMessageList 获取管理员消息列表
 func (s *MessageService) GetAdminMessageList(req *MessageListRequest) (*MessageListResponse, error) {
@@ -227,66 +217,30 @@ func (s *MessageService) CancelMessage(messageID uint64) error {
 	return global.DB.Model(&message).Update("status", model.MessageStatusRevoked).Error
 }
 
-// GetCustomerMessageAdminList 获取客户消息列表（管理员）
-func (s *MessageService) GetCustomerMessageAdminList(req *CustomerMessageAdminListRequest) (*CustomerMessageAdminListResponse, error) {
-	if req.Page == 0 {
-		req.Page = 1
-	}
-	if req.PageSize == 0 {
-		req.PageSize = 10
-	}
-
-	var messages []model.CustomerMessage
-	query := global.DB.Model(&model.CustomerMessage{})
-
-	if req.CustomerID > 0 {
-		query = query.Where("customer_id = ?", req.CustomerID)
-	}
-	if req.IsRead != nil {
-		query = query.Where("is_read = ?", *req.IsRead)
-	}
-
-	var total int64
-	query.Count(&total)
-
-	offset := (req.Page - 1) * req.PageSize
-	if err := query.Preload("Message").Preload("Customer").
-		Order("created_at DESC").Limit(req.PageSize).Offset(offset).Find(&messages).Error; err != nil {
-		return nil, err
-	}
-
-	return &CustomerMessageAdminListResponse{
-		List:  messages,
-		Total: total,
-	}, nil
-}
-
-// SendCustomerMessage 发送客户消息
-func (s *MessageService) SendCustomerMessage(req *CustomerMessageSendRequest) error {
-	// 创建消息
-	priority, _ := strconv.Atoi(req.Priority)
-	message := &model.Message{
-		Title:      req.Title,
-		Content:    req.Content,
-		Type:       model.MessageTypePrivate,
-		Priority:   priority,
-		Status:     model.MessageStatusPublished,
-		TargetType: "customer",
-		TargetID:   &req.CustomerID,
-		ExpiredAt:  &req.ExpireTime,
-	}
-
-	if err := global.DB.Create(message).Error; err != nil {
-		return err
-	}
-
-	// 创建客户消息关联
-	customerMessage := &model.CustomerMessage{
-		MessageID:  message.ID,
-		CustomerID: req.CustomerID,
-		IsRead:     false,
-		IsDeleted:  false,
-	}
-
-	return global.DB.Create(customerMessage).Error
+// GetMessageStats 获取消息统计信息
+func (s *MessageService) GetMessageStats() (*MessageStatsResponse, error) {
+	var stats MessageStatsResponse
+	
+	// 总消息数
+	global.DB.Model(&model.Message{}).Count(&stats.TotalCount)
+	
+	// 草稿消息数
+	global.DB.Model(&model.Message{}).Where("status = ?", model.MessageStatusDraft).Count(&stats.DraftCount)
+	
+	// 已发布消息数
+	global.DB.Model(&model.Message{}).Where("status = ?", model.MessageStatusPublished).Count(&stats.PublishedCount)
+	
+	// 已撤回消息数
+	global.DB.Model(&model.Message{}).Where("status = ?", model.MessageStatusRevoked).Count(&stats.RevokedCount)
+	
+	// 系统消息数
+	global.DB.Model(&model.Message{}).Where("type = ?", model.MessageTypeSystem).Count(&stats.SystemCount)
+	
+	// 通知消息数
+	global.DB.Model(&model.Message{}).Where("type = ?", model.MessageTypeNotice).Count(&stats.NoticeCount)
+	
+	// 私信消息数
+	global.DB.Model(&model.Message{}).Where("type = ?", model.MessageTypePrivate).Count(&stats.PrivateCount)
+	
+	return &stats, nil
 }

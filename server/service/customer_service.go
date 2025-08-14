@@ -35,10 +35,10 @@ type CustomerStatusUpdateRequest struct {
 }
 
 type CustomerListRequest struct {
-	Page     int    `json:"page" binding:"min=1"`
-	PageSize int    `json:"page_size" binding:"min=1,max=100"`
-	Keyword  string `json:"keyword,omitempty" binding:"max=100"`
-	Status   string `json:"status,omitempty" binding:"omitempty,oneof=active banned pending"`
+	Page     int    `form:"page" json:"page" binding:"min=1"`
+	PageSize int    `form:"page_size" json:"page_size" binding:"min=1,max=100"`
+	Keyword  string `form:"keyword,omitempty" json:"keyword,omitempty" binding:"max=100"`
+	Status   string `form:"status,omitempty" json:"status,omitempty" binding:"omitempty,oneof=active banned pending"`
 }
 
 type CustomerListResponse struct {

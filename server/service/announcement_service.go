@@ -61,6 +61,18 @@ type AnnouncementStats struct {
 	ReadRate       float64 `json:"read_rate"`
 }
 
+// AnnouncementStatsResponse 公告统计响应
+type AnnouncementStatsResponse struct {
+	TotalCount    int64 `json:"total_count"`    // 总公告数
+	DraftCount    int64 `json:"draft_count"`    // 草稿公告数
+	PublishedCount int64 `json:"published_count"` // 已发布公告数
+	RevokedCount  int64 `json:"revoked_count"`  // 已撤回公告数
+	SystemCount   int64 `json:"system_count"`   // 系统公告数
+	NoticeCount   int64 `json:"notice_count"`   // 通知公告数
+	MaintenanceCount int64 `json:"maintenance_count"` // 维护公告数
+	UpdateCount   int64 `json:"update_count"`   // 更新公告数
+}
+
 type CustomerAnnouncementListRequest struct {
 	Page     int    `form:"page" json:"page" binding:"min=1"`
 	PageSize int    `form:"page_size" json:"page_size" binding:"min=1,max=100"`
@@ -442,4 +454,35 @@ func (s *AnnouncementService) getAnnouncementStats(announcementID uint64) (*Anno
 		ReadCustomers:  readCustomers,
 		ReadRate:       readRate,
 	}, nil
+}
+
+// GetAnnouncementStats 获取公告统计信息
+func (s *AnnouncementService) GetAnnouncementStats() (*AnnouncementStatsResponse, error) {
+	var stats AnnouncementStatsResponse
+	
+	// 总公告数
+	global.DB.Model(&model.Announcement{}).Where("deleted_at IS NULL").Count(&stats.TotalCount)
+	
+	// 草稿公告数
+	global.DB.Model(&model.Announcement{}).Where("deleted_at IS NULL AND status = ?", model.AnnouncementStatusDraft).Count(&stats.DraftCount)
+	
+	// 已发布公告数
+	global.DB.Model(&model.Announcement{}).Where("deleted_at IS NULL AND status = ?", model.AnnouncementStatusPublished).Count(&stats.PublishedCount)
+	
+	// 已撤回公告数
+	global.DB.Model(&model.Announcement{}).Where("deleted_at IS NULL AND status = ?", model.AnnouncementStatusRevoked).Count(&stats.RevokedCount)
+	
+	// 系统公告数
+	global.DB.Model(&model.Announcement{}).Where("deleted_at IS NULL AND type = ?", model.AnnouncementTypeSystem).Count(&stats.SystemCount)
+	
+	// 通知公告数
+	global.DB.Model(&model.Announcement{}).Where("deleted_at IS NULL AND type = ?", model.AnnouncementTypeNotice).Count(&stats.NoticeCount)
+	
+	// 维护公告数
+	global.DB.Model(&model.Announcement{}).Where("deleted_at IS NULL AND type = ?", model.AnnouncementTypeMaintenance).Count(&stats.MaintenanceCount)
+	
+	// 更新公告数
+	global.DB.Model(&model.Announcement{}).Where("deleted_at IS NULL AND type = ?", model.AnnouncementTypeUpdate).Count(&stats.UpdateCount)
+	
+	return &stats, nil
 }

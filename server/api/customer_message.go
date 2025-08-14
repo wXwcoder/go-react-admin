@@ -1,9 +1,12 @@
 package api
 
 import (
+	"go-react-admin/global"
+	"go-react-admin/model"
 	"go-react-admin/service"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -19,8 +22,9 @@ type CustomerMessageAPI struct{}
 // @Param page query int false "页码" default(1)
 // @Param page_size query int false "每页数量" default(10) minimum(1) maximum(100)
 // @Param is_read query bool false "是否已读"
-// @Param message_type query string false "消息类型"
-// @Success 200 {object} service.CustomerMessageListResponse
+// @Param type query string false "消息类型"
+// @Param keyword query string false "关键词"
+// @Success 200 {object} service.SimpleCustomerMessageResponse
 // @Router /api/v1/customer/messages [get]
 // @Security CustomerJWTAuth
 func (api *CustomerMessageAPI) GetMessages(c *gin.Context) {
@@ -30,7 +34,7 @@ func (api *CustomerMessageAPI) GetMessages(c *gin.Context) {
 		return
 	}
 
-	var req service.CustomerMessageListRequest
+	var req service.SimpleCustomerMessageRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -44,7 +48,7 @@ func (api *CustomerMessageAPI) GetMessages(c *gin.Context) {
 		req.PageSize = 10
 	}
 
-	messageService := &service.CustomerMessageService{}
+	messageService := &service.SimpleCustomerMessageService{}
 	response, err := messageService.GetCustomerMessages(uint64(customerID.(uint)), &req)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -61,7 +65,7 @@ func (api *CustomerMessageAPI) GetMessages(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param id path int true "消息ID"
-// @Success 200 {object} service.CustomerMessageDetailResponse
+// @Success 200 {object} model.Message
 // @Router /api/v1/customer/messages/{id} [get]
 // @Security CustomerJWTAuth
 func (api *CustomerMessageAPI) GetMessageDetail(c *gin.Context) {
@@ -78,14 +82,15 @@ func (api *CustomerMessageAPI) GetMessageDetail(c *gin.Context) {
 		return
 	}
 
-	messageService := &service.CustomerMessageService{}
-	response, err := messageService.GetCustomerMessageDetail(uint64(customerID.(uint)), messageID)
+	var message model.Message
+	err = global.DB.Where("id = ? AND ((target_type = ? AND target_id = ?) OR target_type = ?)", 
+		messageID, "customer", customerID, "all").First(&message).Error
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		c.JSON(http.StatusNotFound, gin.H{"error": "消息不存在或无权限访问"})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"data": response})
+	c.JSON(http.StatusOK, gin.H{"data": message})
 }
 
 // MarkMessageAsRead 标记消息为已读
@@ -112,7 +117,7 @@ func (api *CustomerMessageAPI) MarkMessageAsRead(c *gin.Context) {
 		return
 	}
 
-	messageService := &service.CustomerMessageService{}
+	messageService := &service.SimpleCustomerMessageService{}
 	if err := messageService.MarkMessageAsRead(uint64(customerID.(uint)), messageID); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -127,7 +132,7 @@ func (api *CustomerMessageAPI) MarkMessageAsRead(c *gin.Context) {
 // @Tags 第三方客户消息
 // @Accept json
 // @Produce json
-// @Param message_ids body service.CustomerMessageBatchReadRequest true "消息ID列表"
+// @Param message_ids body struct{MessageIDs []uint64 `json:"message_ids" binding:"required"`} true "消息ID列表"
 // @Success 200 {object} gin.H{"message":"批量标记成功"}
 // @Router /api/v1/customer/messages/batch-read [put]
 // @Security CustomerJWTAuth
@@ -138,16 +143,20 @@ func (api *CustomerMessageAPI) MarkMessagesAsReadBatch(c *gin.Context) {
 		return
 	}
 
-	var req service.CustomerMessageBatchReadRequest
+	var req struct {
+		MessageIDs []uint64 `json:"message_ids" binding:"required"`
+	}
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	messageService := &service.CustomerMessageService{}
-	if err := messageService.MarkMessagesAsReadBatch(uint64(customerID.(uint)), req.MessageIDs); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
+	messageService := &service.SimpleCustomerMessageService{}
+	for _, messageID := range req.MessageIDs {
+		if err := messageService.MarkMessageAsRead(uint64(customerID.(uint)), messageID); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "批量标记成功"})
@@ -169,7 +178,7 @@ func (api *CustomerMessageAPI) GetUnreadCount(c *gin.Context) {
 		return
 	}
 
-	messageService := &service.CustomerMessageService{}
+	messageService := &service.SimpleCustomerMessageService{}
 	count, err := messageService.GetUnreadCount(uint64(customerID.(uint)))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -203,8 +212,16 @@ func (api *CustomerMessageAPI) DeleteMessage(c *gin.Context) {
 		return
 	}
 
-	messageService := &service.CustomerMessageService{}
-	if err := messageService.DeleteCustomerMessage(uint64(customerID.(uint)), messageID); err != nil {
+	// 确保消息存在且属于该客户
+	var message model.Message
+	if err := global.DB.Where("id = ? AND ((target_type = ? AND target_id = ?) OR target_type = ?)", 
+		messageID, "customer", customerID, "all").First(&message).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "消息不存在或无权限访问"})
+		return
+	}
+
+	// 软删除消息
+	if err := global.DB.Delete(&model.Message{}, messageID).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -399,27 +416,42 @@ func (api *CustomerMessageAPI) GetUnreadAnnouncementCount(c *gin.Context) {
 // @Tags 第三方客户消息
 // @Accept json
 // @Produce json
-// @Param message body service.AdminCreateCustomerMessageRequest true "消息信息"
+// @Param message body struct{Title string `json:"title" binding:"required,max=255"`; Content string `json:"content" binding:"required"`; CustomerIDs []uint64 `json:"customer_ids" binding:"required"`; Priority string `json:"priority" binding:"omitempty,oneof=low medium high"`; ExpireTime time.Time `json:"expire_time"`} true "消息信息"
 // @Success 200 {object} gin.H{"message":"创建成功"}
 // @Router /api/v1/admin/customer-messages [post]
 // @Security JWTAuth
 func (api *CustomerMessageAPI) AdminCreateMessage(c *gin.Context) {
-	var req service.AdminCreateCustomerMessageRequest
+	var req struct {
+		Title      string    `json:"title" binding:"required,max=255"`
+		Content    string    `json:"content" binding:"required"`
+		CustomerIDs []uint64 `json:"customer_ids" binding:"required"`
+		Priority   string    `json:"priority" binding:"omitempty,oneof=low medium high"`
+		ExpireTime time.Time `json:"expire_time"`
+	}
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	messageService := &service.CustomerMessageService{}
-	// 使用第一个客户ID创建消息，实际应该先生成消息再关联
-	if len(req.CustomerIDs) > 0 {
-		if err := messageService.CreateCustomerMessage(req.CustomerIDs[0], 0); err != nil {
+	priority, _ := strconv.Atoi(req.Priority)
+	
+	// 为每个客户创建消息
+	for _, customerID := range req.CustomerIDs {
+		message := &model.Message{
+			Title:      req.Title,
+			Content:    req.Content,
+			Type:       model.MessageTypePrivate,
+			Priority:   priority,
+			Status:     model.MessageStatusPublished,
+			TargetType: "customer",
+			TargetID:   &customerID,
+			ExpiredAt:  &req.ExpireTime,
+		}
+		
+		if err := global.DB.Create(message).Error; err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
-	} else {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "请选择接收消息的客户"})
-		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "创建成功"})
@@ -431,19 +463,41 @@ func (api *CustomerMessageAPI) AdminCreateMessage(c *gin.Context) {
 // @Tags 第三方客户消息
 // @Accept json
 // @Produce json
-// @Param message body service.AdminCreateCustomerMessagesBatchRequest true "消息信息"
+// @Param message body struct{Title string `json:"title" binding:"required,max=255"`; Content string `json:"content" binding:"required"`; CustomerIDs []uint64 `json:"customer_ids" binding:"required"`; Priority string `json:"priority" binding:"omitempty,oneof=low medium high"`; ExpireTime time.Time `json:"expire_time"`} true "消息信息"
 // @Success 200 {object} gin.H{"message":"批量创建成功"}
 // @Router /api/v1/admin/customer-messages/batch [post]
 // @Security JWTAuth
 func (api *CustomerMessageAPI) AdminCreateMessagesBatch(c *gin.Context) {
-	var req service.AdminCreateCustomerMessagesBatchRequest
+	var req struct {
+		Title      string    `json:"title" binding:"required,max=255"`
+		Content    string    `json:"content" binding:"required"`
+		CustomerIDs []uint64 `json:"customer_ids" binding:"required"`
+		Priority   string    `json:"priority" binding:"omitempty,oneof=low medium high"`
+		ExpireTime time.Time `json:"expire_time"`
+	}
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	messageService := &service.CustomerMessageService{}
-	if err := messageService.CreateCustomerMessagesBatch(req.CustomerIDs, 0); err != nil {
+	priority, _ := strconv.Atoi(req.Priority)
+	
+	// 批量创建消息
+	messages := make([]*model.Message, len(req.CustomerIDs))
+	for i, customerID := range req.CustomerIDs {
+		messages[i] = &model.Message{
+			Title:      req.Title,
+			Content:    req.Content,
+			Type:       model.MessageTypePrivate,
+			Priority:   priority,
+			Status:     model.MessageStatusPublished,
+			TargetType: "customer",
+			TargetID:   &customerID,
+			ExpiredAt:  &req.ExpireTime,
+		}
+	}
+	
+	if err := global.DB.CreateInBatches(messages, 100).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}

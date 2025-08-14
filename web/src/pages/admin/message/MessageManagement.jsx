@@ -35,7 +35,6 @@ const MessageManagement = () => {
         page_size: pagination.pageSize,
         ...params,
       });
-      console.log('获取消息列表响应:', response);
       setData(response.data.list);
       setPagination({
         ...pagination,

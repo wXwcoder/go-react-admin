@@ -85,6 +85,27 @@ func InitApiRoutes(r *gin.Engine) {
 		protected.POST("/admin/customers/:id/ban", api.CustomerApi.BanCustomer)
 		protected.POST("/admin/customers/:id/unban", api.CustomerApi.UnbanCustomer)
 
+		// 管理员消息管理路由
+		adminMessageAPI := &api.AdminMessageAPI{}
+		protected.GET("/admin/messages", adminMessageAPI.GetMessages)
+		protected.GET("/admin/messages/stats", adminMessageAPI.GetMessageStats)
+		protected.GET("/admin/messages/:id", adminMessageAPI.GetMessageDetail)
+		protected.POST("/admin/messages", adminMessageAPI.CreateMessage)
+		protected.PUT("/admin/messages/:id", adminMessageAPI.UpdateMessage)
+		protected.DELETE("/admin/messages/:id", adminMessageAPI.DeleteMessage)
+		protected.POST("/admin/messages/:id/send", adminMessageAPI.SendMessage)
+		protected.POST("/admin/messages/:id/cancel", adminMessageAPI.CancelMessage)
+		
+		// 管理员公告管理路由
+		protected.GET("/admin/announcements", adminMessageAPI.GetAnnouncementList)
+		protected.GET("/admin/announcements/stats", adminMessageAPI.GetAnnouncementStats)
+		protected.GET("/admin/announcements/:id", adminMessageAPI.GetAnnouncementDetail)
+		protected.POST("/admin/announcements", adminMessageAPI.CreateAnnouncement)
+		protected.PUT("/admin/announcements/:id", adminMessageAPI.UpdateAnnouncement)
+		protected.DELETE("/admin/announcements/:id", adminMessageAPI.DeleteAnnouncement)
+		protected.POST("/admin/announcements/:id/publish", adminMessageAPI.PublishAnnouncement)
+		protected.POST("/admin/announcements/:id/revoke", adminMessageAPI.RevokeAnnouncement)
+
 		// 第三方客户消息管理路由
 		protected.POST("/admin/customer-messages", api.CustomerMessageApi.AdminCreateMessage)
 		protected.POST("/admin/customer-messages/batch", api.CustomerMessageApi.AdminCreateMessagesBatch)
@@ -115,6 +136,7 @@ func InitApiRoutes(r *gin.Engine) {
 		customerProtected.GET("/messages", api.CustomerMessageApi.GetMessages)
 		customerProtected.GET("/messages/:id", api.CustomerMessageApi.GetMessageDetail)
 		customerProtected.PUT("/messages/:id/read", api.CustomerMessageApi.MarkMessageAsRead)
+		customerProtected.POST("/messages/:id/read", api.CustomerMessageApi.MarkMessageAsRead)
 		customerProtected.PUT("/messages/batch-read", api.CustomerMessageApi.MarkMessagesAsReadBatch)
 		customerProtected.GET("/messages/unread-count", api.CustomerMessageApi.GetUnreadCount)
 		customerProtected.DELETE("/messages/:id", api.CustomerMessageApi.DeleteMessage)

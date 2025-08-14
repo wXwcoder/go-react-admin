@@ -38,7 +38,6 @@ type Message struct {
 	DeletedAt  *time.Time    `gorm:"type:datetime;index" json:"deleted_at,omitempty"`
 
 	// 关联关系
-	CustomerMessages []CustomerMessage `gorm:"foreignKey:MessageID" json:"customer_messages,omitempty"`
 }
 
 func (Message) TableName() string {
