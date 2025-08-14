@@ -40,8 +40,8 @@ const PermissionGuard = ({ children, requiredPermission, fallback = null }) => {
   if (loading) {
     return (
       <div className="permission-loading">
-        <div className="loading-spinner">
-          <i className="fas fa-spinner fa-spin"></i>
+        <div className="permission-loading-spinner">
+          <i className="fas fa-spinner"></i>
           <span>检查权限中...</span>
         </div>
       </div>

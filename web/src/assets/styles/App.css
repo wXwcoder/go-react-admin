@@ -69,17 +69,22 @@ html, body {
   color: var(--text-secondary);
 }
 
-.page-loading .loading-spinner {
+.page-loading .page-loading-spinner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   gap: 12px;
 }
 
-.page-loading .loading-spinner i {
+.page-loading .page-loading-spinner i {
   font-size: 24px;
   color: var(--primary-color);
+  animation: spin 1s linear infinite;
 }
 
-.page-loading .loading-spinner span {
+.page-loading .page-loading-spinner span {
   font-size: 14px;
+  white-space: nowrap;
 }
 
 /* 404页面 */
@@ -180,17 +185,22 @@ html, body {
   color: var(--text-secondary);
 }
 
-.permission-loading .loading-spinner {
+.permission-loading .permission-loading-spinner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   gap: 8px;
 }
 
-.permission-loading .loading-spinner i {
+.permission-loading .permission-loading-spinner i {
   font-size: 16px;
   color: var(--primary-color);
+  animation: spin 1s linear infinite;
 }
 
-.permission-loading .loading-spinner span {
+.permission-loading .permission-loading-spinner span {
   font-size: 12px;
+  white-space: nowrap;
 }
 
 /* 滚动条样式 */

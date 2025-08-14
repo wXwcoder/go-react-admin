@@ -31,8 +31,8 @@ const CustomerManagement = lazy(() => import('../pages/CustomerManagement'));
 const LoadingWrapper = ({ children }) => (
   <Suspense fallback={
     <div className="page-loading">
-      <div className="loading-spinner">
-        <i className="fas fa-spinner fa-spin"></i>
+      <div className="page-loading-spinner">
+        <i className="fas fa-spinner"></i>
         <span>页面加载中...</span>
       </div>
     </div>
