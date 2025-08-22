@@ -42,6 +42,20 @@ const Dashboard = () => {
       color: '#eb2f96'
     },
     {
+      title: '客户管理',
+      description: '管理系统客户信息和资料',
+      icon: '👨‍💼',
+      path: '/customers',
+      color: '#ff7a45'
+    },
+    {
+      title: '消息管理',
+      description: '管理系统消息和通知',
+      icon: '💬',
+      path: '/messages',
+      color: '#36cfc9'
+    },
+    {
       title: '系统日志',
       description: '查看系统操作日志和审计记录',
       icon: '📝',

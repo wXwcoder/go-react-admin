@@ -523,6 +523,121 @@ const CustomerMessages = () => {
           }
         ]}
       />
+
+      {/* 消息详情模态框 */}
+      <Modal
+        title="消息详情"
+        open={detailModalVisible}
+        onCancel={() => setDetailModalVisible(false)}
+        footer={[
+          <Button key="close" onClick={() => setDetailModalVisible(false)}>
+            关闭
+          </Button>
+        ]}
+        width={600}
+      >
+        {selectedMessage && (
+          <div style={{ marginTop: 16 }}>
+            <p><strong>标题：</strong>{selectedMessage.title}</p>
+            <p><strong>类型：</strong>
+              <Tag color={
+                selectedMessage.type === 'system' ? 'blue' :
+                selectedMessage.type === 'notification' ? 'green' :
+                selectedMessage.type === 'warning' ? 'orange' :
+                selectedMessage.type === 'error' ? 'red' : 'default'
+              }>
+                {selectedMessage.type === 'system' ? '系统消息' :
+                 selectedMessage.type === 'notification' ? '通知公告' :
+                 selectedMessage.type === 'warning' ? '警告消息' :
+                 selectedMessage.type === 'error' ? '错误消息' : '未知类型'}
+              </Tag>
+            </p>
+            <p><strong>优先级：</strong>
+              <Tag color={
+                selectedMessage.priority >= 8 ? 'red' :
+                selectedMessage.priority >= 5 ? 'orange' : 'blue'
+              }>
+                {selectedMessage.priority >= 8 ? '高' :
+                 selectedMessage.priority >= 5 ? '中' : '低'}优先级
+              </Tag>
+            </p>
+            <p><strong>状态：</strong>
+              <Tag color={selectedMessage.is_read ? 'success' : 'processing'}>
+                {selectedMessage.is_read ? '已读' : '未读'}
+              </Tag>
+            </p>
+            <p><strong>内容：</strong></p>
+            <div 
+              style={{ 
+                backgroundColor: '#f5f5f5', 
+                padding: 16, 
+                borderRadius: 4,
+                marginBottom: 16,
+                whiteSpace: 'pre-wrap'
+              }}
+            >
+              {selectedMessage.content}
+            </div>
+            <p><strong>发送时间：</strong>{formatDateTime(selectedMessage.created_at)}</p>
+            {selectedMessage.read_time && (
+              <p><strong>阅读时间：</strong>{formatDateTime(selectedMessage.read_time)}</p>
+            )}
+          </div>
+        )}
+      </Modal>
+
+      {/* 公告详情模态框 */}
+      <Modal
+        title="公告详情"
+        open={announcementModal.visible}
+        onCancel={() => setAnnouncementModal({ visible: false, data: null })}
+        footer={[
+          <Button key="close" onClick={() => setAnnouncementModal({ visible: false, data: null })}>
+            关闭
+          </Button>
+        ]}
+        width={600}
+      >
+        {announcementModal.data && (
+          <div style={{ marginTop: 16 }}>
+            <p><strong>标题：</strong>{announcementModal.data.title}</p>
+            <p><strong>类型：</strong>
+              <Tag color={getTypeTag(announcementModal.data.type).color}>
+                {getTypeTag(announcementModal.data.type).text}
+              </Tag>
+            </p>
+            <p><strong>优先级：</strong>
+              <Tag color={getPriorityColor(announcementModal.data.priority)}>
+                优先级 {announcementModal.data.priority}
+              </Tag>
+            </p>
+            <p><strong>状态：</strong>
+              <Tag color={announcementModal.data.is_read ? 'success' : 'processing'}>
+                {announcementModal.data.is_read ? '已读' : '未读'}
+              </Tag>
+            </p>
+            <p><strong>内容：</strong></p>
+            <div 
+              style={{ 
+                backgroundColor: '#f5f5f5', 
+                padding: 16, 
+                borderRadius: 4,
+                marginBottom: 16,
+                whiteSpace: 'pre-wrap'
+              }}
+            >
+              {announcementModal.data.content}
+            </div>
+            <p><strong>发布时间：</strong>{formatDateTime(announcementModal.data.created_at)}</p>
+            {announcementModal.data.expired_at && (
+              <p><strong>过期时间：</strong>{formatDateTime(announcementModal.data.expired_at)}</p>
+            )}
+            {announcementModal.data.read_time && (
+              <p><strong>阅读时间：</strong>{formatDateTime(announcementModal.data.read_time)}</p>
+            )}
+          </div>
+        )}
+      </Modal>
     </div>
   );
 };
